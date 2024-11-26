@@ -7,7 +7,7 @@ export function UserPlaylists() {
 
   return (
     <React.Suspense fallback={<SongItemSkeleton />}>
-      {actions.getUserPlaylists({ limit: 30 })}
+      {actions.renderDevicesAsync()}
     </React.Suspense>
   );
 }

@@ -10,24 +10,14 @@ export default function SpotifyAuthButton() {
 
   const [request, , promptAsync] = useSpotifyAuthRequest();
 
+  console.log("request", request);
+
   return (
     <SpotifyBrandButton
       disabled={!request}
       style={{ margin: 16 }}
-      title="Login with Spotify"
+      title="Login with Google Nest"
       onPress={() => promptAsync()}
-    />
-  );
-}
-
-export function LogoutButton() {
-  const spotifyAuth = useSpotifyAuth();
-
-  return (
-    <SpotifyBrandButton
-      title="Logout"
-      style={{ marginHorizontal: 16, marginBottom: 16 }}
-      onPress={() => spotifyAuth!.clearAccessToken()}
     />
   );
 }

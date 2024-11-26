@@ -24,7 +24,10 @@ export const SpotifyAuthContext = React.createContext<{
   setAccessToken: (access: SpotifyCodeExchangeResponse) => void;
   clearAccessToken: () => void;
   getFreshAccessToken: () => Promise<SpotifyCodeExchangeResponse>;
-  exchangeAuthCodeAsync: (code: string) => Promise<any>;
+  exchangeAuthCodeAsync: (props: {
+    code: string;
+    codeVerifier: string;
+  }) => Promise<any>;
   useSpotifyAuthRequest: (
     config?: Partial<AuthRequestConfig>
   ) => ReturnType<typeof useSpotifyAuthRequest>;
@@ -71,9 +74,13 @@ export function SpotifyClientAuthProvider({
     localStorage.setItem(cacheKey, str);
   };
 
-  const exchangeAuthCodeAndCacheAsync = async (code: string) => {
+  const exchangeAuthCodeAndCacheAsync = async (props: {
+    code: string;
+    codeVerifier: string;
+  }) => {
     const res = await exchangeAuthCodeAsync({
-      code,
+      code: props.code,
+      codeVerifier: props.codeVerifier,
       redirectUri: config.redirectUri,
     });
     storeAccessToken(res);

@@ -14,9 +14,10 @@ export function useSpotifyAuthRequest(
   {
     exchangeAuthCodeAsync,
   }: {
-    exchangeAuthCodeAsync: (
-      code: string
-    ) => Promise<SpotifyCodeExchangeResponse>;
+    exchangeAuthCodeAsync: (props: {
+      code: string;
+      codeVerifier: string;
+    }) => Promise<SpotifyCodeExchangeResponse>;
   },
   config: AuthRequestConfig
 ): [
@@ -39,7 +40,10 @@ export function useSpotifyAuthRequest(
     async (options?: AuthRequestPromptOptions) => {
       const response = await promptAsync(options);
       if (response.type === "success") {
-        return exchangeAuthCodeAsync(response.params.code);
+        return exchangeAuthCodeAsync({
+          code: response.params.code,
+          codeVerifier: request?.codeVerifier ?? "",
+        });
       } else {
         return response;
       }

@@ -48,6 +48,7 @@ function AuthenticatedPage() {
   const text = useHeaderSearch();
 
   if (!text) {
+    // return <Text>Hey</Text>;
     return <UserPlaylists />;
   }
 

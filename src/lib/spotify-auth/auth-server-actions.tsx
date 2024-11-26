@@ -9,13 +9,14 @@ import {
 import { discovery } from "./discovery";
 
 const {
-  NEST_GOOGLE_CLIENT_ID: clientId,
+  EXPO_PUBLIC_GOOGLE_OAUTH_CLIENT_ID_IOS: clientId,
   NEST_GOOGLE_CLIENT_SECRET: clientSecret,
 } = process.env;
 
 export async function exchangeAuthCodeAsync(props: {
   code: string;
   redirectUri: string;
+  codeVerifier: string;
 }): Promise<SpotifyCodeExchangeResponse> {
   // curl -L -X POST 'https://www.googleapis.com/oauth2/v4/token?client_id=549323343471-57tgasajtb6s3e02gk6lsj45rdl2n8lp.apps.googleusercontent.com&client_secret=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&code=4/0AeaYSHA3I2SPA9mc1Y3NxIzWl08qq46_25OSWIX8xj4Sxt8l-2GJ1qsJH4UPTAIUVyYQog&grant_type=authorization_code&redirect_uri=https://www.google.com'
   // {
@@ -36,12 +37,21 @@ export async function exchangeAuthCodeAsync(props: {
     },
     body: new URLSearchParams({
       code: props.code,
-      client_id: process.env.EXPO_PUBLIC_GOOGLE_OAUTH_CLIENT_ID_IOS!,
+      client_id: clientId!,
       // client_secret: process.env.EXPO_GOOGLE_OAUTH_CLIENT_SECRET,
       redirect_uri: props.redirectUri,
       grant_type: "authorization_code",
+      code_verifier: props.codeVerifier,
     }).toString(),
   }).then((res) => res.json());
+
+  if ("error" in body) {
+    if ("error_description" in body) {
+      throw new Error(body.error_description);
+    } else {
+      throw new Error(body.error);
+    }
+  }
 
   console.log("[SPOTIFY] requestAccessToken:", body);
   const response = SpotifyCodeExchangeResponseSchema.parse(body);
