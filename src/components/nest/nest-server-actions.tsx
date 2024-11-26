@@ -33,34 +33,34 @@ export const getDeviceInfoAsync = async (
 ): Promise<unknown> => {
   // console.log("getDeviceInfoAsync", props);
 
-  // const data = await nestFetchJson(auth, `devices/${props.deviceId}`);
+  const data = await nestFetchJson(auth, `devices/${props.deviceId}`);
   // console.log("nest.device:", JSON.stringify(data));
 
-  const dataFixture = {
-    name: "enterprises/0fe1e2fa-6f3d-4def-8dcd-0d865762ca22/devices/AVPHwEtDbjwxaw0KicmC6YA_jmWBNOgfgqGSPQk_HJcJUNbOfkpu-_tTwKQcqJdSj6xDgave-qkNO16mC2Wk1DYmPdowqw",
-    type: "sdm.devices.types.CAMERA",
-    assignee:
-      "enterprises/0fe1e2fa-6f3d-4def-8dcd-0d865762ca22/structures/AVPHwEuCQo--bj0J52VoxE2GaQBypuhBLxBE2N4jbD2XsDnugexucqiE-x7tVqCl0BHmCQ9WLGKHitUht8DG8xeLbiLqPw/rooms/AVPHwEuM39_kxV7uCBR3JGq61ZYWKIAAWg_cUxT8eWyLiBem8PFEmbPfGBMXGOKTUFP9H5XetbREeHC2xW19ZSTgu2tPEEkICB9oCRR2R-mX-1E4-xHHsKY4rqW0nwWQ_pwja0Yrprp1Fks",
-    traits: {
-      "sdm.devices.traits.Info": { customName: "Backyard camera" },
-      "sdm.devices.traits.CameraLiveStream": {
-        videoCodecs: ["H264"],
-        audioCodecs: ["OPUS"],
-        supportedProtocols: ["WEB_RTC"],
-      },
-      "sdm.devices.traits.CameraPerson": {},
-      "sdm.devices.traits.CameraMotion": {},
-    },
-    parentRelations: [
-      {
-        parent:
-          "enterprises/0fe1e2fa-6f3d-4def-8dcd-0d865762ca22/structures/AVPHwEuCQo--bj0J52VoxE2GaQBypuhBLxBE2N4jbD2XsDnugexucqiE-x7tVqCl0BHmCQ9WLGKHitUht8DG8xeLbiLqPw/rooms/AVPHwEuM39_kxV7uCBR3JGq61ZYWKIAAWg_cUxT8eWyLiBem8PFEmbPfGBMXGOKTUFP9H5XetbREeHC2xW19ZSTgu2tPEEkICB9oCRR2R-mX-1E4-xHHsKY4rqW0nwWQ_pwja0Yrprp1Fks",
-        displayName: "Backyard",
-      },
-    ],
-  };
+  // const dataFixture = {
+  //   name: "enterprises/0fe1e2fa-6f3d-4def-8dcd-0d865762ca22/devices/AVPHwEtDbjwxaw0KicmC6YA_jmWBNOgfgqGSPQk_HJcJUNbOfkpu-_tTwKQcqJdSj6xDgave-qkNO16mC2Wk1DYmPdowqw",
+  //   type: "sdm.devices.types.CAMERA",
+  //   assignee:
+  //     "enterprises/0fe1e2fa-6f3d-4def-8dcd-0d865762ca22/structures/AVPHwEuCQo--bj0J52VoxE2GaQBypuhBLxBE2N4jbD2XsDnugexucqiE-x7tVqCl0BHmCQ9WLGKHitUht8DG8xeLbiLqPw/rooms/AVPHwEuM39_kxV7uCBR3JGq61ZYWKIAAWg_cUxT8eWyLiBem8PFEmbPfGBMXGOKTUFP9H5XetbREeHC2xW19ZSTgu2tPEEkICB9oCRR2R-mX-1E4-xHHsKY4rqW0nwWQ_pwja0Yrprp1Fks",
+  //   traits: {
+  //     "sdm.devices.traits.Info": { customName: "Backyard camera" },
+  //     "sdm.devices.traits.CameraLiveStream": {
+  //       videoCodecs: ["H264"],
+  //       audioCodecs: ["OPUS"],
+  //       supportedProtocols: ["WEB_RTC"],
+  //     },
+  //     "sdm.devices.traits.CameraPerson": {},
+  //     "sdm.devices.traits.CameraMotion": {},
+  //   },
+  //   parentRelations: [
+  //     {
+  //       parent:
+  //         "enterprises/0fe1e2fa-6f3d-4def-8dcd-0d865762ca22/structures/AVPHwEuCQo--bj0J52VoxE2GaQBypuhBLxBE2N4jbD2XsDnugexucqiE-x7tVqCl0BHmCQ9WLGKHitUht8DG8xeLbiLqPw/rooms/AVPHwEuM39_kxV7uCBR3JGq61ZYWKIAAWg_cUxT8eWyLiBem8PFEmbPfGBMXGOKTUFP9H5XetbREeHC2xW19ZSTgu2tPEEkICB9oCRR2R-mX-1E4-xHHsKY4rqW0nwWQ_pwja0Yrprp1Fks",
+  //       displayName: "Backyard",
+  //     },
+  //   ],
+  // };
 
-  return <CameraDetailScreen device={dataFixture} />;
+  return <CameraDetailScreen device={data} />;
 
   // return (
   //   <View>
@@ -72,16 +72,16 @@ export const getDeviceInfoAsync = async (
 };
 
 export const renderDevicesAsync = async (auth: { access_token: string }) => {
-  const data = require("./nest-devices-fixture.json") as NestDevices;
-  // const data = (await fetch(
-  //   `https://smartdevicemanagement.googleapis.com/v1/enterprises/${process.env.EXPO_PUBLIC_NEST_PROJECT_ID}/devices`,
-  //   {
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //       Authorization: `Bearer ${auth.access_token}`,
-  //     },
-  //   }
-  // ).then((res) => res.json())) as NestDevices;
+  // const data = require("./nest-devices-fixture.json") as NestDevices;
+  const data = (await fetch(
+    `https://smartdevicemanagement.googleapis.com/v1/enterprises/${process.env.EXPO_PUBLIC_NEST_PROJECT_ID}/devices`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${auth.access_token}`,
+      },
+    }
+  ).then((res) => res.json())) as NestDevices;
 
   console.log("nest devices: ", JSON.stringify(data));
 
