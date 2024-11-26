@@ -4,45 +4,48 @@ import React from "react";
 
 import { Button, ScrollView, Text, View } from "react-native";
 import { Stack } from "expo-router";
+import NestDeviceList from "./nest-device-cards";
 
-export const renderDevicesAsync = async (auth: { access_token: string }) => {
-  const data = (await fetch(
-    `https://smartdevicemanagement.googleapis.com/v1/enterprises/${process.env.EXPO_PUBLIC_NEST_PROJECT_ID}/devices`,
+async function nestFetchJson(auth: { access_token: string }, url: string) {
+  return await fetch(
+    `https://smartdevicemanagement.googleapis.com/v1/enterprises/${
+      process.env.EXPO_PUBLIC_NEST_PROJECT_ID
+    }/${url.replace(/^\//, "")}`,
     {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${auth.access_token}`,
       },
     }
-  ).then((res) => res.json())) as NestDevices;
+  ).then((res) => res.json());
+}
+
+export const getDeviceInfoAsync = async (
+  auth: { access_token: string },
+  props: { deviceId: string }
+): Promise<unknown> => {
+  const data = await nestFetchJson(auth, `devices/${props.deviceId}`);
+
+  console.log("nest.device:", JSON.stringify(data));
+
+  return null;
+};
+
+export const renderDevicesAsync = async (auth: { access_token: string }) => {
+  const data = require("./nest-devices-fixture.json") as NestDevices;
+  // const data = (await fetch(
+  //   `https://smartdevicemanagement.googleapis.com/v1/enterprises/${process.env.EXPO_PUBLIC_NEST_PROJECT_ID}/devices`,
+  //   {
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       Authorization: `Bearer ${auth.access_token}`,
+  //     },
+  //   }
+  // ).then((res) => res.json())) as NestDevices;
 
   console.log("nest devices: ", JSON.stringify(data));
 
-  return (
-    <ScrollView>
-      {data.devices.map((device, index) => (
-        <View
-          key={String(index)}
-          style={[
-            device.traits["sdm.devices.traits.Connectivity"]?.status ===
-              "OFFLINE" && { opacity: 0.3, pointerEvents: "none" },
-            { gap: 8, padding: 8, borderWidth: 1 },
-          ]}
-        >
-          <View
-            style={{ flexDirection: "row", justifyContent: "space-between" }}
-          >
-            <Text style={{ fontWeight: "bold" }}>
-              {device.traits["sdm.devices.traits.Info"]?.customName}
-            </Text>
-            {!!device.traits["sdm.devices.traits.Connectivity"]?.status && (
-              <Text>Offline</Text>
-            )}
-          </View>
-        </View>
-      ))}
-    </ScrollView>
-  );
+  return <NestDeviceList devices={data.devices} />;
 };
 
 async function sendNestCommandAsync(props: {

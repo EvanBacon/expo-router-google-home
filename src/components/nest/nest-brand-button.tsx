@@ -19,7 +19,7 @@ export function NestBrandButton({
       onPress={onPress}
       style={[
         {
-          backgroundColor: "#1DB954",
+          backgroundColor: "#4285F4",
           flexDirection: "row",
           borderRadius: 6,
           gap: 12,
@@ -29,7 +29,7 @@ export function NestBrandButton({
         },
         style,
       ]}
-      underlayColor="#1ED760"
+      underlayColor="#4285F4"
     >
       <>
         <NestSvg style={{ width: 24, height: 24 }} />
