@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "rsc-spotify",
-    "slug": "rsc-spotify",
+    "name": "rsc-nest",
+    "slug": "rsc-nest",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "exai",
@@ -12,20 +12,19 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-       "scheme": ["com.googleusercontent.apps.549323343471-esl81iea3g398omh5e5nmadnda5700p7"],
-       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false,
+      "scheme": [
+        "com.googleusercontent.apps.549323343471-esl81iea3g398omh5e5nmadnda5700p7"
+      ],
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
       },
       "supportsTablet": true,
-      "bundleIdentifier": "com.bacon.rsc-spotify"
+      "bundleIdentifier": "com.bacon.nest"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#ffffff"
       }
-    },
-    "web": {
-      "bundler": "metro"
     },
     "plugins": ["expo-router"],
     "experiments": {
