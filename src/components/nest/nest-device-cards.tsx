@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Device, NestDevices } from "./nest-server-actions";
+import { Link } from "expo-router";
 
 // Temperature conversion utility
 const celsiusToFahrenheit = (celsius) => {
@@ -63,7 +64,7 @@ const ThermostatCard = ({ device }) => {
 };
 
 // Camera Component
-const CameraCard = ({ device }) => {
+const CameraCard = ({ device }: { device: Device }) => {
   const {
     traits: {
       "sdm.devices.traits.Info": infoTrait,
@@ -76,6 +77,8 @@ const CameraCard = ({ device }) => {
   const roomName = parentRelations[0]?.displayName;
   const hasAudio = streamTrait?.audioCodecs?.includes("OPUS");
 
+  const deviceId = device.name.split("/").pop();
+
   return (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -84,9 +87,11 @@ const CameraCard = ({ device }) => {
       </View>
 
       <View style={styles.content}>
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>View Live Stream</Text>
-        </TouchableOpacity>
+        <Link href={`/device/` + deviceId} asChild>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>View Live Stream</Text>
+          </TouchableOpacity>
+        </Link>
 
         <View style={styles.features}>
           <MaterialCommunityIcons
@@ -112,6 +117,7 @@ const DoorbellCard = ({ device }) => {
 
   const customName = infoTrait?.customName;
   const maxResolution = imageTrait?.maxImageResolution;
+  const deviceId = device.name.split("/").pop();
 
   return (
     <View style={styles.card}>
@@ -121,9 +127,11 @@ const DoorbellCard = ({ device }) => {
       </View>
 
       <View style={styles.content}>
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>View Doorbell Camera</Text>
-        </TouchableOpacity>
+        <Link href={`/device/` + deviceId} asChild>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>View Doorbell Camera</Text>
+          </TouchableOpacity>
+        </Link>
 
         {maxResolution && (
           <Text style={styles.resolution}>

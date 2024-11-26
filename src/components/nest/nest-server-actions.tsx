@@ -5,9 +5,10 @@ import React from "react";
 import { Button, ScrollView, Text, View } from "react-native";
 import { Stack } from "expo-router";
 import NestDeviceList from "./nest-device-cards";
+import CameraDetailScreen from "./nest-camera-detail";
 
 async function nestFetchJson(auth: { access_token: string }, url: string) {
-  return await fetch(
+  const res = await fetch(
     `https://smartdevicemanagement.googleapis.com/v1/enterprises/${
       process.env.EXPO_PUBLIC_NEST_PROJECT_ID
     }/${url.replace(/^\//, "")}`,
@@ -17,18 +18,57 @@ async function nestFetchJson(auth: { access_token: string }, url: string) {
         Authorization: `Bearer ${auth.access_token}`,
       },
     }
-  ).then((res) => res.json());
+  );
+
+  if (res.status !== 200) {
+    throw new Error(await res.text());
+  }
+
+  return res.json();
 }
 
 export const getDeviceInfoAsync = async (
   auth: { access_token: string },
   props: { deviceId: string }
 ): Promise<unknown> => {
-  const data = await nestFetchJson(auth, `devices/${props.deviceId}`);
+  // console.log("getDeviceInfoAsync", props);
 
-  console.log("nest.device:", JSON.stringify(data));
+  // const data = await nestFetchJson(auth, `devices/${props.deviceId}`);
+  // console.log("nest.device:", JSON.stringify(data));
 
-  return null;
+  const dataFixture = {
+    name: "enterprises/0fe1e2fa-6f3d-4def-8dcd-0d865762ca22/devices/AVPHwEtDbjwxaw0KicmC6YA_jmWBNOgfgqGSPQk_HJcJUNbOfkpu-_tTwKQcqJdSj6xDgave-qkNO16mC2Wk1DYmPdowqw",
+    type: "sdm.devices.types.CAMERA",
+    assignee:
+      "enterprises/0fe1e2fa-6f3d-4def-8dcd-0d865762ca22/structures/AVPHwEuCQo--bj0J52VoxE2GaQBypuhBLxBE2N4jbD2XsDnugexucqiE-x7tVqCl0BHmCQ9WLGKHitUht8DG8xeLbiLqPw/rooms/AVPHwEuM39_kxV7uCBR3JGq61ZYWKIAAWg_cUxT8eWyLiBem8PFEmbPfGBMXGOKTUFP9H5XetbREeHC2xW19ZSTgu2tPEEkICB9oCRR2R-mX-1E4-xHHsKY4rqW0nwWQ_pwja0Yrprp1Fks",
+    traits: {
+      "sdm.devices.traits.Info": { customName: "Backyard camera" },
+      "sdm.devices.traits.CameraLiveStream": {
+        videoCodecs: ["H264"],
+        audioCodecs: ["OPUS"],
+        supportedProtocols: ["WEB_RTC"],
+      },
+      "sdm.devices.traits.CameraPerson": {},
+      "sdm.devices.traits.CameraMotion": {},
+    },
+    parentRelations: [
+      {
+        parent:
+          "enterprises/0fe1e2fa-6f3d-4def-8dcd-0d865762ca22/structures/AVPHwEuCQo--bj0J52VoxE2GaQBypuhBLxBE2N4jbD2XsDnugexucqiE-x7tVqCl0BHmCQ9WLGKHitUht8DG8xeLbiLqPw/rooms/AVPHwEuM39_kxV7uCBR3JGq61ZYWKIAAWg_cUxT8eWyLiBem8PFEmbPfGBMXGOKTUFP9H5XetbREeHC2xW19ZSTgu2tPEEkICB9oCRR2R-mX-1E4-xHHsKY4rqW0nwWQ_pwja0Yrprp1Fks",
+        displayName: "Backyard",
+      },
+    ],
+  };
+
+  return <CameraDetailScreen device={dataFixture} />;
+
+  // return (
+  //   <View>
+  //     <Text>Device Info</Text>
+  //     <Text>{JSON.stringify(dataFixture)}</Text>
+  //   </View>
+  // );
+  // return null;
 };
 
 export const renderDevicesAsync = async (auth: { access_token: string }) => {
@@ -48,13 +88,47 @@ export const renderDevicesAsync = async (auth: { access_token: string }) => {
   return <NestDeviceList devices={data.devices} />;
 };
 
+export async function generateWebRtcStream(
+  auth: { access_token: string },
+  device: { deviceId: string; offerSdp: string }
+): Promise<{
+  results: {
+    answerSdp: string;
+    expiresAt: string;
+    mediaSessionId: string;
+  };
+}> {
+  // const fixture = {
+  //   results: {
+  //     answerSdp:
+  //       "v=0\r\no=- 0 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=group:BUNDLE 0 2 1\r\na=msid-semantic: WMS 1525878280818873121/1115490690 virtual-6666\r\na=ice-lite\r\nm=audio 19305 UDP/TLS/RTP/SAVPF 111\r\nc=IN IP4 74.125.247.7\r\na=rtcp:9 IN IP4 0.0.0.0\r\na=candidate: 1 udp 2113939711 2001:4860:4864:4::d 19305 typ host generation 0\r\na=candidate: 1 tcp 2113939710 2001:4860:4864:4::d 19305 typ host tcptype passive generation 0\r\na=candidate: 1 ssltcp 2113939709 2001:4860:4864:4::d 443 typ host generation 0\r\na=candidate: 1 udp 2113932031 74.125.247.7 19305 typ host generation 0\r\na=candidate: 1 tcp 2113932030 74.125.247.7 19305 typ host tcptype passive generation 0\r\na=candidate: 1 ssltcp 2113932029 74.125.247.7 443 typ host generation 0\r\na=ice-ufrag:4ht-1yvSJuVayAoKAAiSWigaIAEQ\r\na=ice-pwd:Bt3emDc0z7yjfo0MOewFCSDXe6U=\r\na=fingerprint:sha-256 40:34:CB:72:3D:B4:A6:0A:3F:13:2C:D7:42:6F:66:68:74:73:6B:BD:C0:8A:AE:AF:01:92:E5:43:D2:18:77:B9\r\na=setup:passive\r\na=mid:0\r\na=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level\r\na=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time\r\na=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01\r\na=sendrecv\r\na=msid:virtual-6666 virtual-6666\r\na=rtcp-mux\r\na=rtpmap:111 opus/48000/2\r\na=rtcp-fb:111 transport-cc\r\na=fmtp:111 minptime=10;useinbandfec=1\r\na=ssrc:6666 cname:6666\r\nm=video 9 UDP/TLS/RTP/SAVPF 96 97 98 99\r\nc=IN IP4 0.0.0.0\r\na=rtcp:9 IN IP4 0.0.0.0\r\na=ice-ufrag:4ht-1yvSJuVayAoKAAiSWigaIAEQ\r\na=ice-pwd:Bt3emDc0z7yjfo0MOewFCSDXe6U=\r\na=fingerprint:sha-256 40:34:CB:72:3D:B4:A6:0A:3F:13:2C:D7:42:6F:66:68:74:73:6B:BD:C0:8A:AE:AF:01:92:E5:43:D2:18:77:B9\r\na=setup:passive\r\na=mid:1\r\na=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time\r\na=extmap:13 urn:3gpp:video-orientation\r\na=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01\r\na=sendrecv\r\na=msid:1525878280818873121/1115490690 1525878280818873121/1115490690\r\na=rtcp-mux\r\na=rtpmap:96 H264/90000\r\na=rtcp-fb:96 transport-cc\r\na=rtcp-fb:96 ccm fir\r\na=rtcp-fb:96 nack\r\na=rtcp-fb:96 nack pli\r\na=rtcp-fb:96 goog-remb\r\na=fmtp:96 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=640c1f\r\na=rtpmap:97 rtx/90000\r\na=fmtp:97 apt=96\r\na=rtpmap:98 H264/90000\r\na=rtcp-fb:98 transport-cc\r\na=rtcp-fb:98 ccm fir\r\na=rtcp-fb:98 nack\r\na=rtcp-fb:98 nack pli\r\na=rtcp-fb:98 goog-remb\r\na=fmtp:98 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f\r\na=rtpmap:99 rtx/90000\r\na=fmtp:99 apt=98\r\na=ssrc-group:FID 1115490690 1772706812\r\na=ssrc:1115490690 cname:1115490690\r\na=ssrc:1772706812 cname:1115490690\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=ice-ufrag:4ht-1yvSJuVayAoKAAiSWigaIAEQ\r\na=ice-pwd:Bt3emDc0z7yjfo0MOewFCSDXe6U=\r\na=fingerprint:sha-256 40:34:CB:72:3D:B4:A6:0A:3F:13:2C:D7:42:6F:66:68:74:73:6B:BD:C0:8A:AE:AF:01:92:E5:43:D2:18:77:B9\r\na=setup:passive\r\na=mid:2\r\na=sctpmap:5000 webrtc-datachannel 1024\r\n",
+  //     expiresAt: "2024-11-26T23:17:05.807267Z",
+  //     mediaSessionId: "4ht-1yvSJuVayAoKAAiSWigaIAEQ",
+  //   },
+  // };
+
+  // return fixture;
+
+  const res = await sendNestCommandAsync({
+    accessToken: auth.access_token,
+    deviceId: device.deviceId,
+    command: "sdm.devices.commands.CameraLiveStream.GenerateWebRtcStream",
+    params: {
+      offerSdp: device.offerSdp,
+    },
+  });
+
+  console.log("nest.stream:", JSON.stringify(res));
+  return res;
+}
+
 async function sendNestCommandAsync(props: {
   accessToken: string;
   deviceId: string;
   command: string;
   params: any;
 }) {
-  const data = await fetch(
+  const res = await fetch(
     `https://smartdevicemanagement.googleapis.com/v1/enterprises/${process.env.EXPO_PUBLIC_NEST_PROJECT_ID}/devices/${props.deviceId}:executeCommand`,
     {
       headers: {
@@ -67,7 +141,12 @@ async function sendNestCommandAsync(props: {
         params: props.params,
       }),
     }
-  ).then((res) => res.json());
+  );
+
+  if (res.status !== 200) {
+    throw new Error(await res.text());
+  }
+  const data = await res.json();
 
   console.log("nest.cmd:", JSON.stringify(data));
   return data;
