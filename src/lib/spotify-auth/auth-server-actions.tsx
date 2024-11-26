@@ -6,26 +6,38 @@ import {
   SpotifyCodeExchangeResponse,
   SpotifyCodeExchangeResponseSchema,
 } from "./spotify-validation";
+import { discovery } from "./discovery";
 
 const {
-  EXPO_PUBLIC_SPOTIFY_CLIENT_ID: clientId,
-  SPOTIFY_CLIENT_SECRET: clientSecret,
+  NEST_GOOGLE_CLIENT_ID: clientId,
+  NEST_GOOGLE_CLIENT_SECRET: clientSecret,
 } = process.env;
 
 export async function exchangeAuthCodeAsync(props: {
   code: string;
   redirectUri: string;
 }): Promise<SpotifyCodeExchangeResponse> {
-  const body = await fetch("https://accounts.spotify.com/api/token", {
+  // curl -L -X POST 'https://www.googleapis.com/oauth2/v4/token?client_id=549323343471-57tgasajtb6s3e02gk6lsj45rdl2n8lp.apps.googleusercontent.com&client_secret=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&code=4/0AeaYSHA3I2SPA9mc1Y3NxIzWl08qq46_25OSWIX8xj4Sxt8l-2GJ1qsJH4UPTAIUVyYQog&grant_type=authorization_code&redirect_uri=https://www.google.com'
+  // {
+  //   "access_token": "ya29.a0Ad52N38vnZXbKznlNHuUJSDTXfsc_hULxoFbNz9wllqBOTdBTeg0ZrmbNPc0ON2syd-SRBzpE9j2-CVKwwXBVOU_ir5tYiyQTEvv5pzFx6a_Ih-mtJXU20qyR2PLGpi2hv3G5xCc4876PbzaFqFRyh1vIt41g4OmMwxCaCgYKAcMSARISFQHGX2MiTwpiAnx2CnOBMC_ZMCkeaw0171",
+  //   "expires_in": 3598,
+  //   "refresh_token": "1//0fqneltUusrPvCgYIARAAGA8SNwF-L9IrFfX5ImhtWpytBhsd4r8Hbms-f0U9ZEFEZsbe6nFUcVeWUXPzmhSUbEDGvpEDSPluqw8",
+  //   "scope": "https://www.googleapis.com/auth/sdm.service",
+  //   "token_type": "Bearer"
+  // }
+
+  const body = await fetch(discovery.tokenEndpoint, {
     method: "POST",
     headers: {
       "content-type": "application/x-www-form-urlencoded",
-      Authorization:
-        "Basic " +
-        Buffer.from(clientId + ":" + clientSecret).toString("base64"),
+      // Authorization:
+      //   "Basic " +
+      //   Buffer.from(clientId + ":" + clientSecret).toString("base64"),
     },
     body: new URLSearchParams({
       code: props.code,
+      client_id: process.env.EXPO_PUBLIC_GOOGLE_OAUTH_CLIENT_ID_IOS!,
+      // client_secret: process.env.EXPO_GOOGLE_OAUTH_CLIENT_SECRET,
       redirect_uri: props.redirectUri,
       grant_type: "authorization_code",
     }).toString(),
@@ -44,7 +56,8 @@ export async function exchangeAuthCodeAsync(props: {
 export async function refreshTokenAsync(
   refreshToken: string
 ): Promise<SpotifyCodeExchangeResponse> {
-  const body = await fetch("https://accounts.spotify.com/api/token", {
+  // TODO: Check this against nest docs
+  const body = await fetch(discovery.tokenEndpoint, {
     method: "POST",
     headers: {
       "content-type": "application/x-www-form-urlencoded",
@@ -58,6 +71,14 @@ export async function refreshTokenAsync(
       client_id: clientId!,
     }),
   }).then((res) => res.json());
+
+  if ("error" in body) {
+    if ("error_description" in body) {
+      throw new Error(body.error_description);
+    } else {
+      throw new Error(body.error);
+    }
+  }
 
   console.log("[SPOTIFY] refreshToken:", body);
   const response = SpotifyCodeExchangeResponseSchema.parse(body);

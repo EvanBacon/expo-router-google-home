@@ -8,12 +8,7 @@ import {
   useAuthRequest,
 } from "expo-auth-session";
 import { SpotifyCodeExchangeResponse } from "./spotify-validation";
-
-// Endpoint
-const discovery = {
-  authorizationEndpoint: "https://accounts.spotify.com/authorize",
-  tokenEndpoint: "https://accounts.spotify.com/api/token",
-};
+import { discovery } from "./discovery";
 
 export function useSpotifyAuthRequest(
   {
@@ -33,11 +28,6 @@ export function useSpotifyAuthRequest(
 ] {
   const [request, response, promptAsync] = useAuthRequest(
     {
-      scopes: ["user-read-email", "playlist-modify-public"],
-      // To follow the "Authorization Code Flow" to fetch token after authorizationEndpoint
-      // this must be set to false
-      usePKCE: false,
-
       ...config,
     },
     discovery

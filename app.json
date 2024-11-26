@@ -12,6 +12,10 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
+       "scheme": ["com.googleusercontent.apps.549323343471-esl81iea3g398omh5e5nmadnda5700p7"],
+       "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+      },
       "supportsTablet": true,
       "bundleIdentifier": "com.bacon.rsc-spotify"
     },

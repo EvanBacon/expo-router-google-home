@@ -41,7 +41,7 @@ export function useSpotifyAuth() {
 export function SpotifyClientAuthProvider({
   config,
   children,
-  cacheKey = "spotify-access-token",
+  cacheKey = "nest-access-token",
 }: {
   config: AuthRequestConfig;
   children: React.ReactNode;

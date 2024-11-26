@@ -9,20 +9,19 @@ import { SpotifyActionsProvider } from "@/components/api";
 import "@/global.css";
 
 const redirectUri = makeRedirectUri({
-  scheme: "exai",
+  scheme: 'com.googleusercontent.apps.549323343471-esl81iea3g398omh5e5nmadnda5700p7',
 });
 
 export default function Page() {
   return (
     <SpotifyClientAuthProvider
       config={{
-        clientId: process.env.EXPO_PUBLIC_SPOTIFY_CLIENT_ID!,
+        clientId: process.env.EXPO_PUBLIC_GOOGLE_OAUTH_CLIENT_ID_IOS!,
         scopes: [
-          "user-read-email",
-          "user-read-private",
-          "playlist-read-private",
-          "playlist-modify-public",
-          "user-top-read",
+         // 'openid',
+        // 'https://www.googleapis.com/auth/userinfo.profile',
+        // 'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/sdm.service',
         ],
         redirectUri,
       }}

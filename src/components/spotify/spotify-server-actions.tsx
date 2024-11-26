@@ -6,7 +6,6 @@ import { SongItem } from "../songs";
 
 import type { SpotifySongData } from "@/lib/spotify-auth";
 import { Button, Text, View } from "react-native";
-import UserPlaylistsServer from "./user-playlists-server";
 import { Stack } from "expo-router";
 
 // Get user's playlists
@@ -130,42 +129,6 @@ export const renderSongsAsync = async (
       ))}
     </>
   );
-};
-
-export const getUserPlaylists = async (
-  auth: { access_token: string },
-  { limit = 20, offset = 0 }: { limit?: number; offset?: number }
-) => {
-  const data = (await fetch(
-    `https://api.spotify.com/v1/me/playlists?` +
-      new URLSearchParams({
-        limit: limit.toString(),
-        offset: offset.toString(),
-      }),
-    {
-      headers: {
-        Authorization: `Bearer ${auth.access_token}`,
-      },
-    }
-  ).then(handleSpotifyResponse)) as SpotifyPaging<SpotifyPlaylist>;
-
-  //   console.log("DATA", data.items[0].);
-  // Handle empty response
-  if (!data?.items?.length) {
-    return (
-      <Text
-        style={{
-          alignItems: "center",
-          padding: 16,
-          color: "#6b7280",
-        }}
-      >
-        No playlists found
-      </Text>
-    );
-  }
-
-  return <UserPlaylistsServer data={data} dom={{ matchContents: true }} />;
 };
 
 // Get user's top tracks
