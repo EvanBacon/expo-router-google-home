@@ -5,43 +5,43 @@ import "@/lib/local-storage";
 import React, { use } from "react";
 
 import {
-  SpotifyCodeExchangeResponse,
-  SpotifyCodeExchangeResponseSchema,
-} from "./spotify-validation";
+  NestCodeExchangeResponse,
+  NestCodeExchangeResponseSchema,
+} from "./nest-validation";
 import * as WebBrowser from "expo-web-browser";
 import {
   exchangeAuthCodeAsync,
   refreshTokenAsync,
 } from "./auth-server-actions";
-import { useSpotifyAuthRequest } from "./spotify-auth-session-provider";
+import { useNestAuthRequest } from "./nest-auth-session-provider";
 import { AuthRequestConfig } from "expo-auth-session";
 
 WebBrowser.maybeCompleteAuthSession();
 
-export const SpotifyAuthContext = React.createContext<{
+export const NestAuthContext = React.createContext<{
   accessToken: string | null;
-  auth: SpotifyCodeExchangeResponse | null;
-  setAccessToken: (access: SpotifyCodeExchangeResponse) => void;
+  auth: NestCodeExchangeResponse | null;
+  setAccessToken: (access: NestCodeExchangeResponse) => void;
   clearAccessToken: () => void;
-  getFreshAccessToken: () => Promise<SpotifyCodeExchangeResponse>;
+  getFreshAccessToken: () => Promise<NestCodeExchangeResponse>;
   exchangeAuthCodeAsync: (props: {
     code: string;
     codeVerifier: string;
   }) => Promise<any>;
-  useSpotifyAuthRequest: (
+  useNestAuthRequest: (
     config?: Partial<AuthRequestConfig>
-  ) => ReturnType<typeof useSpotifyAuthRequest>;
+  ) => ReturnType<typeof useNestAuthRequest>;
 } | null>(null);
 
-export function useSpotifyAuth() {
-  const ctx = use(SpotifyAuthContext);
+export function useNestAuth() {
+  const ctx = use(NestAuthContext);
   if (!ctx) {
-    throw new Error("SpotifyAuthContext is null");
+    throw new Error("NestAuthContext is null");
   }
   return ctx;
 }
 
-export function SpotifyClientAuthProvider({
+export function NestClientAuthProvider({
   config,
   children,
   cacheKey = "nest-access-token",
@@ -60,15 +60,15 @@ export function SpotifyClientAuthProvider({
     }
     try {
       const obj = JSON.parse(accessObjectString);
-      return SpotifyCodeExchangeResponseSchema.parse(obj);
+      return NestCodeExchangeResponseSchema.parse(obj);
     } catch (error) {
-      console.error("Failed to parse Spotify access token", error);
+      console.error("Failed to parse Nest access token", error);
       localStorage.removeItem(cacheKey);
       return null;
     }
   }, [accessObjectString]);
 
-  const storeAccessToken = (token: SpotifyCodeExchangeResponse) => {
+  const storeAccessToken = (token: NestCodeExchangeResponse) => {
     const str = JSON.stringify(token);
     setAccessToken(str);
     localStorage.setItem(cacheKey, str);
@@ -88,10 +88,10 @@ export function SpotifyClientAuthProvider({
   };
 
   return (
-    <SpotifyAuthContext.Provider
+    <NestAuthContext.Provider
       value={{
-        useSpotifyAuthRequest: (innerConfig) =>
-          useSpotifyAuthRequest(
+        useNestAuthRequest: (innerConfig) =>
+          useNestAuthRequest(
             { exchangeAuthCodeAsync: exchangeAuthCodeAndCacheAsync },
             {
               ...config,
@@ -136,6 +136,6 @@ export function SpotifyClientAuthProvider({
       }}
     >
       {children}
-    </SpotifyAuthContext.Provider>
+    </NestAuthContext.Provider>
   );
 }

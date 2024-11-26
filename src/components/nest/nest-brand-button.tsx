@@ -1,8 +1,8 @@
-import SpotifySvg from "@/components/svg/spotify";
+import NestSvg from "@/components/svg/nest";
 import * as React from "react";
 import { Text, TouchableHighlight, ViewStyle } from "react-native";
 
-export function SpotifyBrandButton({
+export function NestBrandButton({
   title,
   disabled,
   onPress,
@@ -32,7 +32,7 @@ export function SpotifyBrandButton({
       underlayColor="#1ED760"
     >
       <>
-        <SpotifySvg style={{ width: 24, height: 24 }} />
+        <NestSvg style={{ width: 24, height: 24 }} />
         <Text style={{ fontWeight: "bold", fontSize: 16 }}>{title}</Text>
       </>
     </TouchableHighlight>

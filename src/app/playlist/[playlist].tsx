@@ -1,4 +1,4 @@
-import { useSpotifyActions } from "@/components/api";
+import { useNestActions } from "@/components/api";
 import { BodyScrollView } from "@/components/ui/body";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { Suspense } from "react";
@@ -9,7 +9,7 @@ export { ErrorBoundary } from "expo-router";
 export default function PlaylistScreen() {
   const { playlist } = useLocalSearchParams<{ playlist: string }>();
 
-  const actions = useSpotifyActions();
+  const actions = useNestActions();
 
   return (
     <>

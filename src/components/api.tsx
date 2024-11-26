@@ -1,11 +1,9 @@
 "use client";
 
-import { createSpotifyAPI } from "@/components/spotify/spotify-actions";
-import { renderDevicesAsync } from "@/components/spotify/spotify-server-actions";
+import { createNestAPI } from "@/components/nest/nest-actions";
+import { renderDevicesAsync } from "@/components/nest/nest-server-actions";
 
-export const {
-  Provider: SpotifyActionsProvider,
-  useSpotify: useSpotifyActions,
-} = createSpotifyAPI({
-  renderDevicesAsync,
-});
+export const { Provider: NestActionsProvider, useNest: useNestActions } =
+  createNestAPI({
+    renderDevicesAsync,
+  });

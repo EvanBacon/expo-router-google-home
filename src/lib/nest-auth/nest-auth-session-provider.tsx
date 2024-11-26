@@ -7,17 +7,17 @@ import {
   AuthSessionResult,
   useAuthRequest,
 } from "expo-auth-session";
-import { SpotifyCodeExchangeResponse } from "./spotify-validation";
+import { NestCodeExchangeResponse } from "./nest-validation";
 import { discovery } from "./discovery";
 
-export function useSpotifyAuthRequest(
+export function useNestAuthRequest(
   {
     exchangeAuthCodeAsync,
   }: {
     exchangeAuthCodeAsync: (props: {
       code: string;
       codeVerifier: string;
-    }) => Promise<SpotifyCodeExchangeResponse>;
+    }) => Promise<NestCodeExchangeResponse>;
   },
   config: AuthRequestConfig
 ): [
@@ -25,7 +25,7 @@ export function useSpotifyAuthRequest(
   AuthSessionResult | null,
   (
     options?: AuthRequestPromptOptions
-  ) => Promise<SpotifyCodeExchangeResponse | AuthSessionResult>
+  ) => Promise<NestCodeExchangeResponse | AuthSessionResult>
 ] {
   const [request, response, promptAsync] = useAuthRequest(
     {

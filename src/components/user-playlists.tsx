@@ -1,9 +1,9 @@
 import React from "react";
-import { useSpotifyActions } from "./api";
+import { useNestActions } from "./api";
 import { SongItemSkeleton } from "./songs";
 
 export function UserPlaylists() {
-  const actions = useSpotifyActions();
+  const actions = useNestActions();
 
   return (
     <React.Suspense fallback={<SongItemSkeleton />}>

@@ -22,19 +22,19 @@ type AuthContext = {
   getFreshAccessToken: () => Promise<{ access_token: string }>;
 };
 
-export function createSpotifyAPI<
+export function createNestAPI<
   T extends Record<
     string,
     (auth: { access_token: string }, ...args: any[]) => any
   >
 >(serverActions: T) {
   // Create a new context with the transformed server actions
-  const SpotifyContext = React.createContext<TransformServerActions<T> | null>(
+  const NestContext = React.createContext<TransformServerActions<T> | null>(
     null
   );
 
   // Create the provider component
-  function SpotifyProvider({
+  function NestProvider({
     children,
     useAuth,
   }: {
@@ -60,23 +60,23 @@ export function createSpotifyAPI<
     }, [authContext]);
 
     return (
-      <SpotifyContext.Provider value={transformedActions}>
+      <NestContext.Provider value={transformedActions}>
         {children}
-      </SpotifyContext.Provider>
+      </NestContext.Provider>
     );
   }
 
   // Create a custom hook to use the context
-  function useSpotify() {
-    const context = React.useContext(SpotifyContext);
+  function useNest() {
+    const context = React.useContext(NestContext);
     if (context === null) {
-      throw new Error("useSpotify must be used within a SpotifyProvider");
+      throw new Error("useNest must be used within a NestProvider");
     }
     return context;
   }
 
   return {
-    Provider: SpotifyProvider,
-    useSpotify,
+    Provider: NestProvider,
+    useNest,
   };
 }

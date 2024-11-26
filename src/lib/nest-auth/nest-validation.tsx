@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const SpotifyCodeExchangeResponseSchema = z.object({
+export const NestCodeExchangeResponseSchema = z.object({
   access_token: z.string(),
   token_type: z.string(),
   expires_in: z.number(),
@@ -8,11 +8,11 @@ export const SpotifyCodeExchangeResponseSchema = z.object({
   scope: z.string(),
 });
 
-export type SpotifyCodeExchangeResponse = z.infer<
-  typeof SpotifyCodeExchangeResponseSchema
+export type NestCodeExchangeResponse = z.infer<
+  typeof NestCodeExchangeResponseSchema
 >;
 
-export type SpotifySongData = {
+export type NestSongData = {
   tracks: {
     href: string;
     items: {
@@ -86,7 +86,7 @@ export type SpotifySongData = {
   };
 };
 
-export const SONG_MOCK_DATA: SpotifySongData = {
+export const SONG_MOCK_DATA: NestSongData = {
   tracks: {
     href: "https://api.spotify.com/v1/search?query=Ashnikko&type=track&locale=*&offset=0&limit=15",
     items: [

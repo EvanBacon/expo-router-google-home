@@ -5,33 +5,33 @@
 import * as React from "react";
 import { Text, Button, ScrollView, View } from "react-native";
 
-import SpotifyButton from "@/components/spotify/spotify-auth-button";
+import NestButton from "@/components/nest/nest-auth-button";
 import { SongItemSkeleton } from "@/components/songs";
-import { useSpotifyAuth } from "@/lib/spotify-auth";
+import { useNestAuth } from "@/lib/nest-auth";
 import { Try } from "expo-router/build/views/Try";
 import { useHeaderSearch } from "@/hooks/useHeaderSearch";
-import { useSpotifyActions } from "@/components/api";
+import { useNestActions } from "@/components/api";
 import { BodyScrollView } from "@/components/ui/body";
 import { Stack } from "expo-router";
 import { UserPlaylists } from "@/components/user-playlists";
 
-export default function SpotifyCard() {
-  const spotifyAuth = useSpotifyAuth();
+export default function NestCard() {
+  const nestAuth = useNestAuth();
 
-  if (!spotifyAuth.accessToken) {
-    return <SpotifyButton />;
+  if (!nestAuth.accessToken) {
+    return <NestButton />;
   }
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: "Spotify Profile",
+          title: "Nest Profile",
           headerRight() {
             return (
               <Button
                 title="Logout"
-                onPress={() => spotifyAuth.clearAccessToken()}
+                onPress={() => nestAuth.clearAccessToken()}
               />
             );
           },
@@ -59,10 +59,10 @@ function AuthenticatedPage() {
   );
 }
 
-export { SpotifyError as ErrorBoundary };
+export { NestError as ErrorBoundary };
 
 function SongsScroller({ query }: { query: string }) {
-  const actions = useSpotifyActions();
+  const actions = useNestActions();
 
   return (
     <>
@@ -73,7 +73,7 @@ function SongsScroller({ query }: { query: string }) {
           padding: 16,
         }}
       >
-        <Try catch={SpotifyError}>
+        <Try catch={NestError}>
           <React.Suspense
             fallback={
               <>
@@ -95,15 +95,15 @@ function SongsScroller({ query }: { query: string }) {
 }
 
 // NOTE: This won't get called because server action invocation happens at the root :(
-function SpotifyError({ error, retry }: { error: Error; retry: () => void }) {
-  const spotifyAuth = useSpotifyAuth();
+function NestError({ error, retry }: { error: Error; retry: () => void }) {
+  const nestAuth = useNestAuth();
 
-  console.log("SpotifyError:", error);
+  console.log("NestError:", error);
   React.useEffect(() => {
     if (error.message.includes("access token expired")) {
-      spotifyAuth?.clearAccessToken();
+      nestAuth?.clearAccessToken();
     }
-  }, [error, spotifyAuth]);
+  }, [error, nestAuth]);
 
   return (
     <View>

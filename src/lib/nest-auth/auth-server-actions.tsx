@@ -3,9 +3,9 @@
 import "server-only";
 
 import {
-  SpotifyCodeExchangeResponse,
-  SpotifyCodeExchangeResponseSchema,
-} from "./spotify-validation";
+  NestCodeExchangeResponse,
+  NestCodeExchangeResponseSchema,
+} from "./nest-validation";
 import { discovery } from "./discovery";
 
 const {
@@ -17,7 +17,7 @@ export async function exchangeAuthCodeAsync(props: {
   code: string;
   redirectUri: string;
   codeVerifier: string;
-}): Promise<SpotifyCodeExchangeResponse> {
+}): Promise<NestCodeExchangeResponse> {
   // curl -L -X POST 'https://www.googleapis.com/oauth2/v4/token?client_id=549323343471-57tgasajtb6s3e02gk6lsj45rdl2n8lp.apps.googleusercontent.com&client_secret=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&code=4/0AeaYSHA3I2SPA9mc1Y3NxIzWl08qq46_25OSWIX8xj4Sxt8l-2GJ1qsJH4UPTAIUVyYQog&grant_type=authorization_code&redirect_uri=https://www.google.com'
   // {
   //   "access_token": "ya29.a0Ad52N38vnZXbKznlNHuUJSDTXfsc_hULxoFbNz9wllqBOTdBTeg0ZrmbNPc0ON2syd-SRBzpE9j2-CVKwwXBVOU_ir5tYiyQTEvv5pzFx6a_Ih-mtJXU20qyR2PLGpi2hv3G5xCc4876PbzaFqFRyh1vIt41g4OmMwxCaCgYKAcMSARISFQHGX2MiTwpiAnx2CnOBMC_ZMCkeaw0171",
@@ -54,7 +54,7 @@ export async function exchangeAuthCodeAsync(props: {
   }
 
   console.log("[SPOTIFY] requestAccessToken:", body);
-  const response = SpotifyCodeExchangeResponseSchema.parse(body);
+  const response = NestCodeExchangeResponseSchema.parse(body);
   if ("expires_in" in response) {
     // Set the expiration time to the current time plus the number of seconds until it expires.
     response.expires_in = Date.now() + response.expires_in * 1000;
@@ -65,7 +65,7 @@ export async function exchangeAuthCodeAsync(props: {
 
 export async function refreshTokenAsync(
   refreshToken: string
-): Promise<SpotifyCodeExchangeResponse> {
+): Promise<NestCodeExchangeResponse> {
   // TODO: Check this against nest docs
   const body = await fetch(discovery.tokenEndpoint, {
     method: "POST",
@@ -91,7 +91,7 @@ export async function refreshTokenAsync(
   }
 
   console.log("[SPOTIFY] refreshToken:", body);
-  const response = SpotifyCodeExchangeResponseSchema.parse(body);
+  const response = NestCodeExchangeResponseSchema.parse(body);
   if ("expires_in" in response) {
     // Set the expiration time to the current time plus the number of seconds until it expires.
     response.expires_in = Date.now() + response.expires_in * 1000;

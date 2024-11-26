@@ -1,10 +1,10 @@
 import { Stack } from "expo-router";
 import {
-  SpotifyClientAuthProvider,
-  useSpotifyAuth,
-} from "@/lib/spotify-auth/spotify-client-provider";
+  NestClientAuthProvider,
+  useNestAuth,
+} from "@/lib/nest-auth/nest-client-provider";
 import { makeRedirectUri } from "expo-auth-session";
-import { SpotifyActionsProvider } from "@/components/api";
+import { NestActionsProvider } from "@/components/api";
 
 import "@/global.css";
 
@@ -15,7 +15,7 @@ const redirectUri = makeRedirectUri({
 
 export default function Page() {
   return (
-    <SpotifyClientAuthProvider
+    <NestClientAuthProvider
       config={{
         clientId: process.env.EXPO_PUBLIC_GOOGLE_OAUTH_CLIENT_ID_IOS!,
         scopes: [
@@ -37,14 +37,14 @@ export default function Page() {
       }}
     >
       <InnerAuth />
-    </SpotifyClientAuthProvider>
+    </NestClientAuthProvider>
   );
 }
 
 function InnerAuth() {
   return (
-    <SpotifyActionsProvider useAuth={useSpotifyAuth}>
+    <NestActionsProvider useAuth={useNestAuth}>
       <Stack />
-    </SpotifyActionsProvider>
+    </NestActionsProvider>
   );
 }
