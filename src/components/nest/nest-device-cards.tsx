@@ -92,42 +92,40 @@ async function CameraCard({
   const deviceId = device.name.split("/").pop();
 
   return (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        <MaterialCommunityIcons name="cctv" size={24} color="#2196F3" />
-        <Text style={styles.title}>{customName || roomName}</Text>
-      </View>
+    <Link href={`/device/` + deviceId} asChild>
+      <TouchableBounce>
+        <View style={styles.card}>
+          <View style={styles.header}>
+            <MaterialCommunityIcons name="cctv" size={24} color="#2196F3" />
+            <Text style={styles.title}>{customName || roomName}</Text>
+          </View>
 
-      <WebRTCPlayerWithAuth
-        deviceId={deviceId}
-        accessToken={accessToken}
-        hideControls
-        dom={{
-          matchContents: true,
-          scrollEnabled: false,
-          allowsFullscreenVideo: true,
-          mediaPlaybackRequiresUserAction: false,
-          allowsInlineMediaPlayback: true,
-          domStorageEnabled: true,
-        }}
-      />
-      <View style={styles.content}>
-        <Link href={`/device/` + deviceId} asChild>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>View Live Stream</Text>
-          </TouchableOpacity>
-        </Link>
-
-        <View style={styles.features}>
-          <MaterialCommunityIcons
-            name={hasAudio ? "microphone" : "microphone-off"}
-            size={20}
-            color="#757575"
+          <WebRTCPlayerWithAuth
+            deviceId={deviceId}
+            accessToken={accessToken}
+            hideControls
+            dom={{
+              matchContents: true,
+              scrollEnabled: false,
+              allowsFullscreenVideo: true,
+              mediaPlaybackRequiresUserAction: false,
+              allowsInlineMediaPlayback: true,
+              domStorageEnabled: true,
+            }}
           />
-          <MaterialCommunityIcons name="video" size={20} color="#757575" />
+          <View style={styles.content}>
+            <View style={styles.features}>
+              <MaterialCommunityIcons
+                name={hasAudio ? "microphone" : "microphone-off"}
+                size={20}
+                color="#757575"
+              />
+              <MaterialCommunityIcons name="video" size={20} color="#757575" />
+            </View>
+          </View>
         </View>
-      </View>
-    </View>
+      </TouchableBounce>
+    </Link>
   );
 }
 
@@ -145,40 +143,38 @@ const DoorbellCard = ({ device, accessToken }) => {
   const deviceId = device.name.split("/").pop();
 
   return (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        <MaterialCommunityIcons name="doorbell" size={24} color="#9C27B0" />
-        <Text style={styles.title}>{customName}</Text>
-      </View>
+    <Link href={`/device/` + deviceId} asChild>
+      <TouchableBounce>
+        <View style={styles.card}>
+          <View style={styles.header}>
+            <MaterialCommunityIcons name="doorbell" size={24} color="#9C27B0" />
+            <Text style={styles.title}>{customName}</Text>
+          </View>
 
-      <WebRTCPlayerWithAuth
-        deviceId={deviceId}
-        accessToken={accessToken}
-        hideControls
-        dom={{
-          matchContents: true,
-          scrollEnabled: false,
-          allowsFullscreenVideo: true,
-          mediaPlaybackRequiresUserAction: false,
-          allowsInlineMediaPlayback: true,
-          domStorageEnabled: true,
-        }}
-      />
+          <WebRTCPlayerWithAuth
+            deviceId={deviceId}
+            accessToken={accessToken}
+            hideControls
+            dom={{
+              matchContents: true,
+              scrollEnabled: false,
+              allowsFullscreenVideo: true,
+              mediaPlaybackRequiresUserAction: false,
+              allowsInlineMediaPlayback: true,
+              domStorageEnabled: true,
+            }}
+          />
 
-      <View style={styles.content}>
-        <Link href={`/device/` + deviceId} asChild>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>View Doorbell Camera</Text>
-          </TouchableOpacity>
-        </Link>
-
-        {maxResolution && (
-          <Text style={styles.resolution}>
-            Resolution: {maxResolution.width}x{maxResolution.height}
-          </Text>
-        )}
-      </View>
-    </View>
+          <View style={styles.content}>
+            {maxResolution && (
+              <Text style={styles.resolution}>
+                Resolution: {maxResolution.width}x{maxResolution.height}
+              </Text>
+            )}
+          </View>
+        </View>
+      </TouchableBounce>
+    </Link>
   );
 };
 

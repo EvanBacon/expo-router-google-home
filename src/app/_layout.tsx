@@ -7,6 +7,7 @@ import { makeRedirectUri } from "expo-auth-session";
 import { NestActionsProvider } from "@/components/api";
 
 import "@/global.css";
+import { Platform } from "react-native";
 
 const redirectUri = makeRedirectUri({
   scheme:
@@ -31,8 +32,6 @@ export default function Page() {
           "https://www.googleapis.com/auth/sdm.service",
           "https://www.googleapis.com/auth/sdm.subscription.monitor.service",
           "https://www.googleapis.com/auth/sdm.thermostat.service",
-          // "https://www.googleapis.com/auth/userinfo.email",
-          // "https://www.googleapis.com/auth/userinfo.profile",
         ],
         redirectUri,
         // To follow the "Authorization Code Flow" to fetch token after authorizationEndpoint
@@ -54,7 +53,22 @@ export default function Page() {
 function InnerAuth() {
   return (
     <NestActionsProvider useAuth={useNestAuth}>
-      <Stack>
+      <Stack
+        screenOptions={Platform.select({
+          default: {},
+          ios: {
+            headerLargeTitle: true,
+            headerTransparent: true,
+            headerBlurEffect: "systemChromeMaterial",
+            headerLargeTitleShadowVisible: false,
+            headerShadowVisible: true,
+            headerLargeStyle: {
+              // NEW: Make the large title transparent to match the background.
+              backgroundColor: "transparent",
+            },
+          },
+        })}
+      >
         <Stack.Screen name="index" />
         <Stack.Screen
           name="device/[device]"
