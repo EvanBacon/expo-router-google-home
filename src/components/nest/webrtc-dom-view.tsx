@@ -1,6 +1,6 @@
 "use dom";
 
-import React, { use, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { generateWebRtcStream } from "./nest-server-actions";
 
 interface WebRTCPlayerProps {
@@ -10,13 +10,18 @@ interface WebRTCPlayerProps {
 
 import "@/global.css";
 
-export default function WebRTCPlayerWithAuth({ accessToken, deviceId }) {
+export default function WebRTCPlayerWithAuth({
+  accessToken,
+  deviceId,
+}: {
+  accessToken: string;
+  deviceId: string;
+}) {
   const [answerSdp, setAnswerSdp] = useState<string | undefined>(undefined);
 
   return (
     <WebRTCPlayer
       onOfferCreated={async (offer) => {
-        // console.log("Creating WebRTC stream with offer:", offer);
         generateWebRtcStream(
           { access_token: accessToken },
           {

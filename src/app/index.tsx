@@ -2,17 +2,13 @@
 
 "use client";
 
+import { Stack } from "expo-router";
 import * as React from "react";
-import { Text, Button, ScrollView, View } from "react-native";
+import { Text, Button, View } from "react-native";
 
 import NestButton from "@/components/nest/nest-auth-button";
-import { SongItemSkeleton } from "@/components/songs";
 import { useNestAuth } from "@/lib/nest-auth";
-import { Try } from "expo-router/build/views/Try";
-import { useHeaderSearch } from "@/hooks/useHeaderSearch";
-import { useNestActions } from "@/components/api";
 import { BodyScrollView } from "@/components/ui/body";
-import { Stack } from "expo-router";
 import { UserPlaylists } from "@/components/user-playlists";
 
 export default function NestCard() {
@@ -45,54 +41,10 @@ export default function NestCard() {
 }
 
 function AuthenticatedPage() {
-  const text = useHeaderSearch();
-
-  if (!text) {
-    // return <Text>Hey</Text>;
-    return <UserPlaylists />;
-  }
-
-  return (
-    <>
-      <SongsScroller query={text} />
-    </>
-  );
+  return <UserPlaylists />;
 }
 
 export { NestError as ErrorBoundary };
-
-function SongsScroller({ query }: { query: string }) {
-  const actions = useNestActions();
-
-  return (
-    <>
-      <ScrollView
-        horizontal
-        contentContainerStyle={{
-          gap: 8,
-          padding: 16,
-        }}
-      >
-        <Try catch={NestError}>
-          <React.Suspense
-            fallback={
-              <>
-                <SongItemSkeleton />
-                <SongItemSkeleton />
-                <SongItemSkeleton />
-                <SongItemSkeleton />
-                <SongItemSkeleton />
-                <SongItemSkeleton />
-              </>
-            }
-          >
-            {actions!.renderSongsAsync({ query, limit: 15 })}
-          </React.Suspense>
-        </Try>
-      </ScrollView>
-    </>
-  );
-}
 
 // NOTE: This won't get called because server action invocation happens at the root :(
 function NestError({ error, retry }: { error: Error; retry: () => void }) {
