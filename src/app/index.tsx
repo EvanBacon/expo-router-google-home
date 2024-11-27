@@ -4,7 +4,13 @@
 
 import { Stack } from "expo-router";
 import * as React from "react";
-import { Text, Button, View } from "react-native";
+import {
+  Text,
+  Button,
+  View,
+  ActivityIndicator,
+  RefreshControl,
+} from "react-native";
 
 import NestButton from "@/components/nest/nest-auth-button";
 import { useNestAuth } from "@/lib/nest-auth";
@@ -33,15 +39,30 @@ export default function NestCard() {
           },
         }}
       />
-      <BodyScrollView>
-        <AuthenticatedPage />
-      </BodyScrollView>
+      <AuthenticatedPage />
     </>
   );
 }
 
 function AuthenticatedPage() {
-  return <UserPlaylists />;
+  const [refreshing, setRefreshing] = React.useState(false);
+  const [key, setKey] = React.useState(0);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setKey((prevKey) => prevKey + 1);
+    setRefreshing(false);
+  }, []);
+
+  return (
+    <BodyScrollView
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
+      <UserPlaylists key={key} />
+    </BodyScrollView>
+  );
 }
 
 export { NestError as ErrorBoundary };

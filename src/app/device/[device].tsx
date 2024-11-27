@@ -1,8 +1,10 @@
+/// <reference types="react/canary" />
+
 import { useNestActions } from "@/components/api";
 import { BodyScrollView } from "@/components/ui/body";
 import { useLocalSearchParams } from "expo-router";
 import { Suspense } from "react";
-import { Text } from "react-native";
+import { ActivityIndicator, Text } from "react-native";
 
 export { ErrorBoundary } from "expo-router";
 
@@ -14,7 +16,7 @@ export default function PlaylistScreen() {
   return (
     <>
       <BodyScrollView>
-        <Suspense fallback={<Text>Loading...</Text>}>
+        <Suspense fallback={<ActivityIndicator />}>
           {actions.getDeviceInfoAsync({ deviceId: device })}
         </Suspense>
       </BodyScrollView>

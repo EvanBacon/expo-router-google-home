@@ -9,6 +9,7 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Device, NestDevices } from "./nest-server-actions";
 import { Link } from "expo-router";
+import TouchableBounce from "../ui/TouchableBounce";
 
 // Temperature conversion utility
 const celsiusToFahrenheit = (celsius) => {
@@ -34,32 +35,36 @@ const ThermostatCard = ({ device }) => {
   const isOnline = connectivityTrait?.status === "ONLINE";
 
   return (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        <MaterialCommunityIcons
-          name="thermostat"
-          size={24}
-          color={isOnline ? "#4CAF50" : "#9E9E9E"}
-        />
-        <Text style={styles.title}>{roomName} Thermostat</Text>
-        <View
-          style={[
-            styles.statusDot,
-            { backgroundColor: isOnline ? "#4CAF50" : "#9E9E9E" },
-          ]}
-        />
-      </View>
+    <Link href={`/device/` + device.name.split("/").pop()} asChild>
+      <TouchableBounce>
+        <View style={styles.card}>
+          <View style={styles.header}>
+            <MaterialCommunityIcons
+              name="thermostat"
+              size={24}
+              color={isOnline ? "#4CAF50" : "#9E9E9E"}
+            />
+            <Text style={styles.title}>{roomName} Thermostat</Text>
+            <View
+              style={[
+                styles.statusDot,
+                { backgroundColor: isOnline ? "#4CAF50" : "#9E9E9E" },
+              ]}
+            />
+          </View>
 
-      <View style={styles.content}>
-        <Text style={styles.temperature}>
-          {temperature ? `${celsiusToFahrenheit(temperature)}°F` : "--°F"}
-        </Text>
-        {humidity !== undefined && (
-          <Text style={styles.humidity}>Humidity: {humidity}%</Text>
-        )}
-        <Text style={styles.mode}>Mode: {mode || "OFF"}</Text>
-      </View>
-    </View>
+          <View style={styles.content}>
+            <Text style={styles.temperature}>
+              {temperature ? `${celsiusToFahrenheit(temperature)}°F` : "--°F"}
+            </Text>
+            {humidity !== undefined && (
+              <Text style={styles.humidity}>Humidity: {humidity}%</Text>
+            )}
+            <Text style={styles.mode}>Mode: {mode || "OFF"}</Text>
+          </View>
+        </View>
+      </TouchableBounce>
+    </Link>
   );
 };
 

@@ -71,9 +71,9 @@ export async function refreshTokenAsync(
     method: "POST",
     headers: {
       "content-type": "application/x-www-form-urlencoded",
-      Authorization:
-        "Basic " +
-        Buffer.from(clientId + ":" + clientSecret).toString("base64"),
+      // Authorization:
+      //   "Basic " +
+      //   Buffer.from(clientId + ":" + clientSecret).toString("base64"),
     },
     body: new URLSearchParams({
       grant_type: "refresh_token",

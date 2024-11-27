@@ -6,6 +6,7 @@ import { Button, ScrollView, Text, View } from "react-native";
 import { Stack } from "expo-router";
 import NestDeviceList from "./nest-device-cards";
 import CameraDetailScreen from "./nest-camera-detail";
+import ThermostatDetailScreen from "./thermostat-detail";
 
 async function nestFetchJson(auth: { access_token: string }, url: string) {
   const res = await fetch(
@@ -30,10 +31,10 @@ async function nestFetchJson(auth: { access_token: string }, url: string) {
 export const getDeviceInfoAsync = async (
   auth: { access_token: string },
   props: { deviceId: string }
-): Promise<unknown> => {
+) => {
   // console.log("getDeviceInfoAsync", props);
 
-  const data = await nestFetchJson(auth, `devices/${props.deviceId}`);
+  const data: Device = await nestFetchJson(auth, `devices/${props.deviceId}`);
   // console.log("nest.device:", JSON.stringify(data));
 
   // const dataFixture = {
@@ -60,6 +61,81 @@ export const getDeviceInfoAsync = async (
   //   ],
   // };
 
+  const deviceId = data.name.split("/").pop()!;
+  // is thermostat
+  const isThermostat = data.type === "sdm.devices.types.THERMOSTAT";
+  if (isThermostat) {
+    return (
+      <ThermostatDetailScreen
+        device={data}
+        updateTemperature={async (props: {
+          mode: ThermostatMode;
+          heatCelsius?: number;
+          coolCelsius?: number;
+        }) => {
+          "use server";
+
+          let command: string;
+          let params: any = {};
+
+          // Convert command based on mode
+          switch (props.mode) {
+            case "HEAT":
+              // https://developers.google.com/nest/device-access/traits/device/thermostat-temperature-setpoint#setheat
+              command =
+                "sdm.devices.commands.ThermostatTemperatureSetpoint.SetHeat";
+              params = { heatCelsius: props.heatCelsius };
+              break;
+            case "COOL":
+              // https://developers.google.com/nest/device-access/traits/device/thermostat-temperature-setpoint#setcool
+              command =
+                "sdm.devices.commands.ThermostatTemperatureSetpoint.SetCool";
+              params = { coolCelsius: props.coolCelsius };
+              break;
+            case "HEAT_COOL":
+              // https://developers.google.com/nest/device-access/traits/device/thermostat-temperature-setpoint#setrange
+              command =
+                "sdm.devices.commands.ThermostatTemperatureSetpoint.SetRange";
+              params = {
+                heatCelsius: props.heatCelsius,
+                coolCelsius: props.coolCelsius,
+              };
+              break;
+            case "OFF":
+              command = "sdm.devices.commands.ThermostatMode.SetMode";
+              params = { mode: "OFF" };
+              break;
+            default:
+              throw new Error(`Invalid thermostat mode: ${props.mode}`);
+          }
+
+          console.log("data.deviceId", deviceId);
+          const res = await sendNestCommandAsync({
+            accessToken: auth.access_token,
+            deviceId,
+            command,
+            params,
+          });
+
+          console.log("nest.thermostat:", JSON.stringify(res));
+          return res;
+        }}
+        setThermostatMode={async (props: { mode: ThermostatMode }) => {
+          "use server";
+          const res = await sendNestCommandAsync({
+            accessToken: auth.access_token,
+            deviceId,
+            command: "sdm.devices.commands.ThermostatMode.SetMode",
+            params: { mode: props.mode },
+          });
+
+          console.log("nest.thermostat:", JSON.stringify(res));
+          return res;
+        }}
+      />
+    );
+  }
+
   return <CameraDetailScreen device={data} />;
 
   // return (
@@ -70,6 +146,8 @@ export const getDeviceInfoAsync = async (
   // );
   // return null;
 };
+
+export type ThermostatMode = "HEAT" | "COOL" | "HEAT_COOL" | "OFF";
 
 export const renderDevicesAsync = async (auth: { access_token: string }) => {
   // const data = require("./nest-devices-fixture.json") as NestDevices;

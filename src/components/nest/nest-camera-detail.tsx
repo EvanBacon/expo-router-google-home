@@ -35,7 +35,7 @@ const CameraDetailScreen = ({ device }: { device: Device }) => {
   const auth = useNestAuth();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={[styles.videoContainer, isFullscreen && styles.fullscreen]}>
         {/* {isLoading && (
           <View style={styles.loadingContainer}>
@@ -111,7 +111,7 @@ const CameraDetailScreen = ({ device }: { device: Device }) => {
           </View>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

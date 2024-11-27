@@ -44,7 +44,15 @@ export default function Page() {
 function InnerAuth() {
   return (
     <NestActionsProvider useAuth={useNestAuth}>
-      <Stack />
+      <Stack>
+        <Stack.Screen name="index" />
+        <Stack.Screen
+          name="device/[device]"
+          options={{
+            presentation: "modal",
+          }}
+        />
+      </Stack>
     </NestActionsProvider>
   );
 }
