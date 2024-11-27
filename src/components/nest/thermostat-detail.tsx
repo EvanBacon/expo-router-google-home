@@ -1,16 +1,24 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Dimensions,
+  PanResponder,
+  GestureResponderEvent,
+  PanResponderGestureState,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Device, ThermostatMode } from "./nest-server-actions";
-import { useNestAuth } from "@/lib/nest-auth";
+import { Stack } from "expo-router";
+
+const CIRCLE_SIZE = Dimensions.get("window").width * 0.85;
+const CENTER = CIRCLE_SIZE / 2;
+const CIRCLE_WIDTH = 4;
 
 const ThermostatDetailScreen = ({
   device,
@@ -27,13 +35,12 @@ const ThermostatDetailScreen = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [temperature, setTemperature] = useState(72);
-  const [mode, setMode] = useState<ThermostatMode>("HEAT"); // HEAT, COOL, HEAT_COOL, OFF
+  const [mode, setMode] = useState<ThermostatMode>("COOL");
+  const [isAdjusting, setIsAdjusting] = useState(false);
 
   const {
     traits: {
       "sdm.devices.traits.Info": infoTrait,
-      "sdm.devices.traits.ThermostatMode": modeTrait,
-      "sdm.devices.traits.ThermostatTemperatureSetpoint": setpointTrait,
       "sdm.devices.traits.Temperature": tempTrait,
     },
     parentRelations,
@@ -45,42 +52,44 @@ const ThermostatDetailScreen = ({
   const humidity =
     device.traits?.["sdm.devices.traits.Humidity"]?.ambientHumidityPercent;
 
-  const handleTemperatureChange = async (increment: number) => {
-    setIsLoading(true);
-    try {
-      const newTemp = temperature + increment;
-      setTemperature(newTemp);
-      console.log({
-        mode,
-        heatCelsius: mode === "HEAT" ? newTemp : undefined,
-        coolCelsius: mode === "COOL" ? newTemp : undefined,
-      });
-      await updateTemperature({
-        mode,
-        heatCelsius: mode === "HEAT" ? newTemp : undefined,
-        coolCelsius: mode === "COOL" ? newTemp : undefined,
-      }).then((newTemp) => {
-        setTemperature(newTemp);
-      });
-
-      // Add your API call here to update the temperature
-      // await updateThermostatTemperature(device.name, newTemp);
-    } catch (error) {
-      console.error("Failed to update temperature:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: () => {
+      setIsAdjusting(true);
+    },
+    onPanResponderMove: (
+      e: GestureResponderEvent,
+      gestureState: PanResponderGestureState
+    ) => {
+      const { moveY } = gestureState;
+      const centerY = Dimensions.get("window").height / 2;
+      const diff = (centerY - moveY) / 20;
+      setTemperature((prev) =>
+        Math.round(Math.max(50, Math.min(90, prev + diff)))
+      );
+    },
+    onPanResponderRelease: async () => {
+      setIsAdjusting(false);
+      try {
+        await updateTemperature({
+          mode,
+          coolCelsius:
+            mode === "COOL" ? ((temperature - 32) * 5) / 9 : undefined,
+          heatCelsius:
+            mode === "HEAT" ? ((temperature - 32) * 5) / 9 : undefined,
+        });
+      } catch (error) {
+        console.error("Failed to update temperature:", error);
+      }
+    },
+  });
 
   const handleModeChange = async (newMode: ThermostatMode) => {
     setIsLoading(true);
     try {
+      await setThermostatMode({ mode: newMode });
       setMode(newMode);
-      await setThermostatMode({ mode: newMode }).then((mode) => {
-        // setMode(mode);
-      });
-      // Add your API call here to update the mode
-      // await updateThermostatMode(device.name, newMode);
     } catch (error) {
       console.error("Failed to update mode:", error);
     } finally {
@@ -90,106 +99,90 @@ const ThermostatDetailScreen = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Text style={styles.title}>{customName || roomName}</Text>
-        {isLoading && <ActivityIndicator size="small" color="#2196F3" />}
-      </View>
+      <Stack.Screen
+        options={{
+          title: device.parentRelations[0]?.displayName || "Unknown Room",
+        }}
+      />
 
-      <View style={styles.temperatureContainer}>
-        <Text style={styles.currentTemp}>{Math.round(currentTemp)}°</Text>
-        <Text style={styles.setTemp}>Set to {temperature}°</Text>
-
-        <View style={styles.tempControls}>
-          <TouchableOpacity
-            style={styles.tempButton}
-            onPress={() => handleTemperatureChange(-1)}
-          >
-            <MaterialCommunityIcons name="minus" size={24} color="white" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.tempButton}
-            onPress={() => handleTemperatureChange(1)}
-          >
-            <MaterialCommunityIcons name="plus" size={24} color="white" />
-          </TouchableOpacity>
+      <View style={styles.circleContainer} {...panResponder.panHandlers}>
+        <View style={styles.temperatureRing}>
+          <View style={styles.temperatureDisplay}>
+            <Text style={styles.temperatureText}>{temperature}</Text>
+            {currentTemp && (
+              <View style={styles.currentTempMarker}>
+                <Text style={styles.smallTemp}>
+                  {Math.round((currentTemp * 9) / 5 + 32)}°
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
       </View>
 
-      <View style={styles.modeContainer}>
-        <Text style={styles.sectionTitle}>Mode</Text>
-        <View style={styles.modeButtons}>
-          {["HEAT", "COOL", "HEAT_COOL", "OFF"].map((modeOption) => (
-            <TouchableOpacity
-              key={modeOption}
-              style={[
-                styles.modeButton,
-                mode === modeOption && styles.modeButtonActive,
-              ]}
-              onPress={() => handleModeChange(modeOption)}
-            >
-              <MaterialCommunityIcons
-                name={
-                  modeOption === "HEAT"
-                    ? "fire"
-                    : modeOption === "COOL"
-                    ? "snowflake"
-                    : modeOption === "HEAT_COOL"
-                    ? "autorenew"
-                    : "power"
-                }
-                size={20}
-                color={mode === modeOption ? "white" : "#757575"}
-              />
-              <Text
-                style={[
-                  styles.modeButtonText,
-                  mode === modeOption && styles.modeButtonTextActive,
-                ]}
-              >
-                {modeOption.replace("_", " ")}
-              </Text>
-            </TouchableOpacity>
-          ))}
+      <View style={styles.infoSection}>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoText}>Using scheduled temperatures</Text>
         </View>
-      </View>
 
-      <View style={styles.infoContainer}>
-        <View style={styles.featureList}>
-          <View style={styles.featureItem}>
+        <View style={styles.controlRow}>
+          <TouchableOpacity
+            style={styles.controlButton}
+            onPress={() => handleModeChange(mode === "COOL" ? "HEAT" : "COOL")}
+          >
             <MaterialCommunityIcons
-              name="thermometer"
-              size={20}
-              color="#757575"
+              name={mode === "COOL" ? "snowflake" : "fire"}
+              size={24}
+              color="#0066FF"
             />
-            <Text style={styles.featureText}>
-              {Math.round(currentTemp)}° Current
+            <Text style={styles.controlText}>
+              Mode
+              <Text style={styles.controlSubtext}>
+                {"\n"}
+                {mode}
+              </Text>
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.controlButton}>
+            <MaterialCommunityIcons
+              name="motion-sensor"
+              size={24}
+              color="#0066FF"
+            />
+            <Text style={styles.controlText}>
+              Sensors
+              <Text style={styles.controlSubtext}>{"\n"}1 selected</Text>
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity style={styles.fanButton}>
+          <MaterialCommunityIcons name="fan" size={24} color="#000" />
+          <Text style={styles.fanText}>Fan</Text>
+        </TouchableOpacity>
+
+        <View style={styles.stats}>
+          <View style={styles.statRow}>
+            <Text style={styles.statLabel}>Indoor temperature</Text>
+            <Text style={styles.statValue}>
+              {Math.round((currentTemp * 9) / 5 + 32)}°
             </Text>
           </View>
-
           {humidity && (
-            <View style={styles.featureItem}>
-              <MaterialCommunityIcons
-                name="water-percent"
-                size={20}
-                color="#757575"
-              />
-              <Text style={styles.featureText}>
-                {Math.round(humidity)}% Humidity
-              </Text>
+            <View style={styles.statRow}>
+              <Text style={styles.statLabel}>Humidity</Text>
+              <Text style={styles.statValue}>{Math.round(humidity)}%</Text>
             </View>
           )}
-
-          <View style={styles.featureItem}>
-            <MaterialCommunityIcons
-              name={mode === "HEAT" ? "fire" : "snowflake"}
-              size={20}
-              color="#757575"
-            />
-            <Text style={styles.featureText}>{mode}</Text>
-          </View>
         </View>
       </View>
+
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#0066FF" />
+        </View>
+      )}
     </View>
   );
 };
@@ -197,116 +190,128 @@ const ThermostatDetailScreen = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#F8F9FA",
   },
-  headerContainer: {
-    padding: 16,
+  header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    justifyContent: "space-between",
+    padding: 16,
+  },
+  headerRight: {
+    flexDirection: "row",
+  },
+  iconButton: {
+    marginLeft: 16,
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "600",
   },
-  temperatureContainer: {
+  circleContainer: {
     alignItems: "center",
-    padding: 24,
-    backgroundColor: "white",
-    margin: 16,
-    borderRadius: 16,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  currentTemp: {
-    fontSize: 64,
-    fontWeight: "700",
-    color: "#2196F3",
-  },
-  setTemp: {
-    fontSize: 18,
-    color: "#757575",
-    marginTop: 8,
-  },
-  tempControls: {
-    flexDirection: "row",
-    gap: 16,
-    marginTop: 16,
-  },
-  tempButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#2196F3",
     justifyContent: "center",
-    alignItems: "center",
+    height: CIRCLE_SIZE,
+    marginVertical: 20,
   },
-  modeContainer: {
+  temperatureRing: {
+    width: CIRCLE_SIZE,
+    height: CIRCLE_SIZE,
+    borderRadius: CIRCLE_SIZE / 2,
+    borderWidth: CIRCLE_WIDTH,
+    borderColor: "#E8E9ED",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  temperatureDisplay: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  temperatureText: {
+    fontSize: 72,
+    fontWeight: "300",
+  },
+  currentTempMarker: {
+    position: "absolute",
+    top: -60,
+  },
+  smallTemp: {
+    fontSize: 16,
+    color: "#757575",
+  },
+  infoSection: {
+    flex: 1,
     padding: 16,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
+  infoRow: {
+    backgroundColor: "#F1F3F4",
+    padding: 16,
+    borderRadius: 12,
     marginBottom: 16,
   },
-  modeButtons: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
+  infoText: {
+    color: "#000",
+    fontSize: 16,
   },
-  modeButton: {
+  controlRow: {
+    flexDirection: "row",
+    gap: 16,
+    marginBottom: 16,
+  },
+  controlButton: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    backgroundColor: "white",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-    elevation: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    gap: 12,
+    backgroundColor: "#F1F3F4",
+    padding: 16,
+    borderRadius: 12,
   },
-  modeButtonActive: {
-    backgroundColor: "#2196F3",
+  controlText: {
+    fontSize: 16,
+    color: "#000",
   },
-  modeButtonText: {
-    color: "#757575",
+  controlSubtext: {
     fontSize: 14,
+    color: "#757575",
+  },
+  fanButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: "#F1F3F4",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  fanText: {
+    fontSize: 16,
+    color: "#000",
+  },
+  stats: {
+    backgroundColor: "#F1F3F4",
+    padding: 16,
+    borderRadius: 12,
+  },
+  statRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  statLabel: {
+    fontSize: 16,
+    color: "#000",
+  },
+  statValue: {
+    fontSize: 16,
+    color: "#000",
     fontWeight: "500",
   },
-  modeButtonTextActive: {
-    color: "white",
-  },
-  infoContainer: {
-    padding: 16,
-  },
-  featureList: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 16,
-  },
-  featureItem: {
-    flexDirection: "row",
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
     alignItems: "center",
-    gap: 8,
-    backgroundColor: "white",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-  },
-  featureText: {
-    color: "#757575",
-    fontSize: 14,
+    justifyContent: "center",
   },
 });
 

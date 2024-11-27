@@ -10,6 +10,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Device, NestDevices } from "./nest-server-actions";
 import { Link } from "expo-router";
 import TouchableBounce from "../ui/TouchableBounce";
+import WebRTCPlayerWithAuth from "./webrtc-dom-view";
 
 // Temperature conversion utility
 const celsiusToFahrenheit = (celsius) => {
@@ -69,7 +70,13 @@ const ThermostatCard = ({ device }) => {
 };
 
 // Camera Component
-const CameraCard = ({ device }: { device: Device }) => {
+async function CameraCard({
+  device,
+  accessToken,
+}: {
+  device: Device;
+  accessToken: string;
+}) {
   const {
     traits: {
       "sdm.devices.traits.Info": infoTrait,
@@ -91,6 +98,19 @@ const CameraCard = ({ device }: { device: Device }) => {
         <Text style={styles.title}>{customName || roomName}</Text>
       </View>
 
+      <WebRTCPlayerWithAuth
+        deviceId={deviceId}
+        accessToken={accessToken}
+        hideControls
+        dom={{
+          matchContents: true,
+          scrollEnabled: false,
+          allowsFullscreenVideo: true,
+          mediaPlaybackRequiresUserAction: false,
+          allowsInlineMediaPlayback: true,
+          domStorageEnabled: true,
+        }}
+      />
       <View style={styles.content}>
         <Link href={`/device/` + deviceId} asChild>
           <TouchableOpacity style={styles.button}>
@@ -109,10 +129,10 @@ const CameraCard = ({ device }: { device: Device }) => {
       </View>
     </View>
   );
-};
+}
 
 // Doorbell Component
-const DoorbellCard = ({ device }) => {
+const DoorbellCard = ({ device, accessToken }) => {
   const {
     traits: {
       "sdm.devices.traits.Info": infoTrait,
@@ -130,6 +150,20 @@ const DoorbellCard = ({ device }) => {
         <MaterialCommunityIcons name="doorbell" size={24} color="#9C27B0" />
         <Text style={styles.title}>{customName}</Text>
       </View>
+
+      <WebRTCPlayerWithAuth
+        deviceId={deviceId}
+        accessToken={accessToken}
+        hideControls
+        dom={{
+          matchContents: true,
+          scrollEnabled: false,
+          allowsFullscreenVideo: true,
+          mediaPlaybackRequiresUserAction: false,
+          allowsInlineMediaPlayback: true,
+          domStorageEnabled: true,
+        }}
+      />
 
       <View style={styles.content}>
         <Link href={`/device/` + deviceId} asChild>
@@ -149,15 +183,33 @@ const DoorbellCard = ({ device }) => {
 };
 
 // Main Device List Component
-export const NestDeviceList = ({ devices }: NestDevices) => {
+export const NestDeviceList = ({
+  devices,
+  accessToken,
+}: {
+  devices: NestDevices["devices"];
+  accessToken: string;
+}) => {
   const renderDevice = (device: Device) => {
     switch (device.type) {
       case "sdm.devices.types.THERMOSTAT":
         return <ThermostatCard key={device.name} device={device} />;
       case "sdm.devices.types.CAMERA":
-        return <CameraCard key={device.name} device={device} />;
+        return (
+          <CameraCard
+            key={device.name}
+            device={device}
+            accessToken={accessToken}
+          />
+        );
       case "sdm.devices.types.DOORBELL":
-        return <DoorbellCard key={device.name} device={device} />;
+        return (
+          <DoorbellCard
+            key={device.name}
+            device={device}
+            accessToken={accessToken}
+          />
+        );
       default:
         return null;
     }

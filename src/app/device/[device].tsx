@@ -1,9 +1,10 @@
 /// <reference types="react/canary" />
 
 import { useNestActions } from "@/components/api";
+import ThermostatSkeleton from "@/components/thermostat-skeleton";
 import { BodyScrollView } from "@/components/ui/body";
 import { useLocalSearchParams } from "expo-router";
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 import { ActivityIndicator, Text } from "react-native";
 
 export { ErrorBoundary } from "expo-router";
@@ -13,12 +14,15 @@ export default function PlaylistScreen() {
 
   const actions = useNestActions();
 
+  const view = useMemo(
+    () => actions.getDeviceInfoAsync({ deviceId: device }),
+    [device]
+  );
+
   return (
     <>
       <BodyScrollView>
-        <Suspense fallback={<ActivityIndicator />}>
-          {actions.getDeviceInfoAsync({ deviceId: device })}
-        </Suspense>
+        <Suspense fallback={<ThermostatSkeleton />}>{view}</Suspense>
       </BodyScrollView>
     </>
   );

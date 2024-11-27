@@ -2,11 +2,11 @@
 
 import React from "react";
 
-import { Button, ScrollView, Text, View } from "react-native";
-import { Stack } from "expo-router";
+import { Image, Text, View } from "react-native";
 import NestDeviceList from "./nest-device-cards";
 import CameraDetailScreen from "./nest-camera-detail";
 import ThermostatDetailScreen from "./thermostat-detail";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 async function nestFetchJson(auth: { access_token: string }, url: string) {
   const res = await fetch(
@@ -28,6 +28,14 @@ async function nestFetchJson(auth: { access_token: string }, url: string) {
   return res.json();
 }
 
+export const getDeviceInfoJsonAsync = async (
+  auth: { access_token: string },
+  props: { deviceId: string }
+) => {
+  // console.log("getDeviceInfoAsync", props);
+
+  return await nestFetchJson(auth, `devices/${props.deviceId}`);
+};
 export const getDeviceInfoAsync = async (
   auth: { access_token: string },
   props: { deviceId: string }
@@ -136,7 +144,55 @@ export const getDeviceInfoAsync = async (
     );
   }
 
-  return <CameraDetailScreen device={data} />;
+  return (
+    <CameraDetailScreen
+      device={data}
+      renderCameraHistory={async () => {
+        "use server";
+
+        const events = await getCameraEvents(deviceId, auth.access_token);
+
+        return (
+          <View style={styles.container}>
+            {events.map((event) => (
+              <View key={event.eventId} style={styles.eventCard}>
+                <View style={styles.eventInfo}>
+                  <MaterialCommunityIcons
+                    name={
+                      event.type === "Person"
+                        ? "account"
+                        : event.type === "Motion"
+                        ? "motion-sensor"
+                        : event.type === "Sound"
+                        ? "volume-high"
+                        : "bell"
+                    }
+                    size={24}
+                    color="#fff"
+                  />
+                  <View>
+                    <Text style={styles.eventType}>{event.type}</Text>
+                    <Text style={styles.eventTime}>
+                      {new Date(event.timestamp).toLocaleTimeString([], {
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                    </Text>
+                  </View>
+                </View>
+                {event.imageUrl && (
+                  <Image
+                    source={{ uri: event.imageUrl }}
+                    style={styles.eventThumbnail}
+                  />
+                )}
+              </View>
+            ))}
+          </View>
+        );
+      }}
+    />
+  );
 
   // return (
   //   <View>
@@ -146,6 +202,152 @@ export const getDeviceInfoAsync = async (
   // );
   // return null;
 };
+
+const styles = {
+  container: {
+    padding: 16,
+  },
+  eventCard: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#2a2a2a",
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  eventInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  eventType: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  eventTime: {
+    color: "#999",
+    fontSize: 14,
+  },
+  eventThumbnail: {
+    width: 60,
+    height: 40,
+    borderRadius: 6,
+    backgroundColor: "#333",
+  },
+} as const;
+
+interface CameraEvent {
+  eventId: string;
+  timestamp: string;
+  type: "Motion" | "Person" | "Sound" | "Chime";
+  imageUrl?: string;
+}
+
+interface GenerateImageResponse {
+  url: string;
+  token: string;
+}
+
+export async function getCameraEvents(
+  deviceId: string,
+  accessToken: string
+): Promise<CameraEvent[]> {
+  // Here you would implement the actual events API call
+  // For demonstration, returning mock data that matches the API structure
+  const events = [
+    {
+      eventId: "event1",
+      timestamp: new Date().toISOString(),
+      type: "Person" as const,
+    },
+    {
+      eventId: "event2",
+      timestamp: new Date(Date.now() - 5 * 60000).toISOString(),
+      type: "Motion" as const,
+    },
+  ];
+
+  // Fetch images for each event
+  const eventsWithImages = await Promise.all(
+    events.map(async (event) => {
+      try {
+        const imageData = await generateEventImage(
+          deviceId,
+          event.eventId,
+          accessToken
+        );
+        const imageUrl = await fetchEventImage(imageData.url, imageData.token);
+        return { ...event, imageUrl };
+      } catch (error) {
+        console.error(
+          `Failed to fetch image for event ${event.eventId}:`,
+          error
+        );
+        return event;
+      }
+    })
+  );
+
+  return eventsWithImages;
+}
+
+async function generateEventImage(
+  deviceId: string,
+  eventId: string,
+  accessToken: string
+): Promise<GenerateImageResponse> {
+  const response = await sendNestCommandAsync({
+    accessToken,
+    deviceId,
+    command: "sdm.devices.commands.CameraEventImage.GenerateImage",
+    params: {
+      eventId,
+    },
+  });
+
+  return {
+    url: response.results.url,
+    token: response.results.token,
+  };
+}
+
+async function listEvents(deviceId: string, accessToken: string) {
+  const response = await fetch(
+    `https://smartdevicemanagement.googleapis.com/v1/enterprises/${process.env.EXPO_PUBLIC_NEST_PROJECT_ID}/devices/${deviceId}/events`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+    console.error("Failed to fetch events:", error);
+    throw new Error(error);
+  }
+
+  return response.json();
+}
+
+async function fetchEventImage(url: string, token: string): Promise<string> {
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Basic ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch event image");
+  }
+
+  // Convert the image data to base64 or handle it appropriately
+  const buffer = await response.arrayBuffer();
+  return `data:image/jpeg;base64,${Buffer.from(buffer).toString("base64")}`;
+}
 
 export type ThermostatMode = "HEAT" | "COOL" | "HEAT_COOL" | "OFF";
 
@@ -163,7 +365,9 @@ export const renderDevicesAsync = async (auth: { access_token: string }) => {
 
   console.log("nest devices: ", JSON.stringify(data));
 
-  return <NestDeviceList devices={data.devices} />;
+  return (
+    <NestDeviceList devices={data.devices} accessToken={auth.access_token} />
+  );
 };
 
 export async function generateWebRtcStream(
@@ -195,8 +399,6 @@ export async function generateWebRtcStream(
       offerSdp: device.offerSdp,
     },
   });
-
-  console.log("nest.stream:", JSON.stringify(res));
   return res;
 }
 
@@ -221,6 +423,12 @@ async function sendNestCommandAsync(props: {
     }
   );
 
+  if ([400, 429].includes(res.status)) {
+    const data = await res.json();
+    const err = new Error(data.error.message);
+    err.status = data.error.status;
+    throw err;
+  }
   if (res.status !== 200) {
     throw new Error(await res.text());
   }

@@ -5,20 +5,36 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
-  ActivityIndicator,
+  Image,
+  ScrollView,
+  Dimensions,
 } from "react-native";
-import { WebView } from "react-native-webview";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import { Device } from "./nest-server-actions";
 import WebRTCPlayer from "./webrtc-dom-view";
 import { useNestAuth } from "@/lib/nest-auth";
+import { Stack } from "expo-router";
+import { CameraHistory } from "./camera-history";
 
-const CameraDetailScreen = ({ device }: { device: Device }) => {
+const SCREEN_HEIGHT = Dimensions.get("window").height;
+
+interface Event {
+  type: string;
+  time: string;
+  duration?: string;
+  thumbnail?: string;
+}
+
+const CameraDetailScreen = ({
+  device,
+  renderCameraHistory,
+}: {
+  device: Device;
+  renderCameraHistory: () => Promise<React.ReactNode>;
+}) => {
+  const [isMuted, setIsMuted] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isMuted, setIsMuted] = useState(false);
 
   const {
     traits: {
@@ -34,27 +50,64 @@ const CameraDetailScreen = ({ device }: { device: Device }) => {
 
   const auth = useNestAuth();
 
+  // Mock events data - replace with actual API data
+  const events: Event[] = [
+    {
+      type: "Person",
+      time: "9:57 PM",
+      duration: "12 sec",
+      thumbnail: "/api/placeholder/120/80",
+    },
+    {
+      type: "Person",
+      time: "9:56 PM",
+      duration: "16 sec",
+      thumbnail: "/api/placeholder/120/80",
+    },
+  ];
+
   return (
     <View style={styles.container}>
-      <View style={[styles.videoContainer, isFullscreen && styles.fullscreen]}>
-        {/* {isLoading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#2196F3" />
-            <Text style={styles.loadingText}>Connecting to stream...</Text>
+      <Stack.Screen
+        options={{
+          title: device.parentRelations[0]?.displayName ?? "Camera",
+        }}
+      />
+
+      <View
+        style={[styles.videoSection, isFullscreen && styles.fullscreenVideo]}
+      >
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.headerButton}>
+            <Ionicons name="close" size={24} color="white" />
+          </TouchableOpacity>
+          <View style={styles.liveIndicator}>
+            <View style={styles.liveDot} />
+            <Text style={styles.liveText}>Live</Text>
           </View>
-        )} */}
+          <TouchableOpacity style={styles.headerButton}>
+            <MaterialCommunityIcons
+              name="dots-vertical"
+              size={24}
+              color="white"
+            />
+          </TouchableOpacity>
+        </View>
 
         <WebRTCPlayer
           deviceId={device.name.split("/").pop()}
           accessToken={auth.accessToken}
           dom={{
+            matchContents: true,
+            scrollEnabled: false,
+            allowsFullscreenVideo: true,
             mediaPlaybackRequiresUserAction: false,
             allowsInlineMediaPlayback: true,
             domStorageEnabled: true,
           }}
         />
 
-        <View style={styles.controls}>
+        <View style={styles.videoControls}>
           <TouchableOpacity
             style={styles.controlButton}
             onPress={() => setIsMuted(!isMuted)}
@@ -65,7 +118,6 @@ const CameraDetailScreen = ({ device }: { device: Device }) => {
               color="white"
             />
           </TouchableOpacity>
-
           <TouchableOpacity
             style={styles.controlButton}
             onPress={() => setIsFullscreen(!isFullscreen)}
@@ -79,37 +131,54 @@ const CameraDetailScreen = ({ device }: { device: Device }) => {
         </View>
       </View>
 
+      <CameraHistory renderCameraHistory={renderCameraHistory} />
       {!isFullscreen && (
-        <View style={styles.infoContainer}>
-          <Text style={styles.title}>{customName || roomName}</Text>
-
-          <View style={styles.featureList}>
-            <View style={styles.featureItem}>
-              <MaterialCommunityIcons name="video" size={20} color="#757575" />
-              <Text style={styles.featureText}>H264</Text>
-            </View>
-
-            {hasAudio && (
-              <View style={styles.featureItem}>
-                <MaterialCommunityIcons
-                  name="microphone"
-                  size={20}
-                  color="#757575"
+        <ScrollView style={styles.eventsSection}>
+          <View style={styles.daySection}>
+            <Text style={styles.daySectionTitle}>Today</Text>
+            {events.map((event, index) => (
+              <View key={index} style={styles.eventCard}>
+                <View style={styles.eventInfo}>
+                  <MaterialCommunityIcons
+                    name="account"
+                    size={24}
+                    color="#fff"
+                  />
+                  <View>
+                    <Text style={styles.eventType}>{event.type}</Text>
+                    <Text style={styles.eventTime}>
+                      {event.time} • {event.duration}
+                    </Text>
+                  </View>
+                </View>
+                <Image
+                  source={{ uri: event.thumbnail }}
+                  style={styles.eventThumbnail}
                 />
-                <Text style={styles.featureText}>OPUS Audio</Text>
               </View>
-            )}
-
-            <View style={styles.featureItem}>
-              <MaterialCommunityIcons
-                name="motion-sensor"
-                size={20}
-                color="#757575"
-              />
-              <Text style={styles.featureText}>Motion Detection</Text>
-            </View>
+            ))}
           </View>
-        </View>
+
+          <View style={styles.daySection}>
+            <Text style={styles.daySectionTitle}>Yesterday</Text>
+          </View>
+
+          <View style={styles.controls}>
+            <TouchableOpacity style={styles.bottomButton}>
+              <MaterialCommunityIcons name="cast" size={24} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.muteButton}>
+              <MaterialCommunityIcons
+                name="volume-off"
+                size={24}
+                color="white"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.bottomButton}>
+              <MaterialCommunityIcons name="menu" size={24} color="white" />
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       )}
     </View>
   );
@@ -118,41 +187,59 @@ const CameraDetailScreen = ({ device }: { device: Device }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#1a1a1a",
   },
-  videoContainer: {
-    height: 300,
+  videoSection: {
+    height: SCREEN_HEIGHT * 0.4,
     backgroundColor: "#000",
-    position: "relative",
   },
-  fullscreen: {
+  fullscreenVideo: {
     height: "100%",
   },
-  webview: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
-  loadingContainer: {
+  header: {
     position: "absolute",
-    top: 0,
+    top: 40,
     left: 0,
     right: 0,
-    bottom: 0,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    zIndex: 10,
+    paddingHorizontal: 16,
+  },
+  headerButton: {
+    width: 40,
+    height: 40,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#000",
-    zIndex: 1,
   },
-  loadingText: {
+  liveIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  liveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#4CAF50",
+    marginRight: 6,
+  },
+  liveText: {
     color: "white",
-    marginTop: 10,
+    fontSize: 14,
+    fontWeight: "500",
   },
-  controls: {
+  videoControls: {
     position: "absolute",
     bottom: 16,
     right: 16,
     flexDirection: "row",
     gap: 16,
+    zIndex: 10,
   },
   controlButton: {
     width: 40,
@@ -162,36 +249,67 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  infoContainer: {
+  eventsSection: {
+    flex: 1,
+  },
+  daySection: {
     padding: 16,
   },
-  title: {
-    fontSize: 24,
+  daySectionTitle: {
+    color: "#fff",
+    fontSize: 18,
     fontWeight: "600",
     marginBottom: 16,
   },
-  featureList: {
+  eventCard: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 16,
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+    backgroundColor: "#2a2a2a",
+    padding: 12,
+    borderRadius: 12,
   },
-  featureItem: {
+  eventInfo: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    backgroundColor: "white",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+    gap: 12,
   },
-  featureText: {
-    color: "#757575",
+  eventType: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  eventTime: {
+    color: "#999",
     fontSize: 14,
+  },
+  eventThumbnail: {
+    width: 60,
+    height: 40,
+    borderRadius: 6,
+    backgroundColor: "#333",
+  },
+  controls: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    paddingBottom: 32,
+  },
+  bottomButton: {
+    width: 48,
+    height: 48,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  muteButton: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

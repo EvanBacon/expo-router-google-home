@@ -13,14 +13,26 @@ import "@/global.css";
 export default function WebRTCPlayerWithAuth({
   accessToken,
   deviceId,
+  hideControls,
 }: {
   accessToken: string;
   deviceId: string;
+  hideControls?: boolean;
+  dom?: import("expo/dom").DOMProps;
 }) {
+  const [isOffline, setIsOffline] = useState(false);
   const [answerSdp, setAnswerSdp] = useState<string | undefined>(undefined);
 
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+  }, []);
+
+  if (isOffline) {
+    return <div className="text-center text-red-500">Battery is dead</div>;
+  }
   return (
     <WebRTCPlayer
+      hideControls={hideControls}
       onOfferCreated={async (offer) => {
         generateWebRtcStream(
           { access_token: accessToken },
@@ -28,9 +40,18 @@ export default function WebRTCPlayerWithAuth({
             deviceId,
             offerSdp: offer,
           }
-        ).then((data) => {
-          setAnswerSdp(data.results.answerSdp);
-        });
+        )
+          .then((data) => {
+            setAnswerSdp(data.results.answerSdp);
+          })
+          .catch((err) => {
+            console.error("Failed to generate WebRTC stream", err.message);
+            if (
+              err.message.match("The camera is not available for streaming")
+            ) {
+              setIsOffline(true);
+            }
+          });
       }}
       answerSdp={answerSdp}
     />
@@ -40,9 +61,14 @@ export default function WebRTCPlayerWithAuth({
 interface WebRTCPlayerProps {
   onOfferCreated: (offerSdp: string) => void;
   answerSdp?: string;
+  hideControls?: boolean;
 }
 
-function WebRTCPlayer({ onOfferCreated, answerSdp }: WebRTCPlayerProps) {
+function WebRTCPlayer({
+  onOfferCreated,
+  hideControls,
+  answerSdp,
+}: WebRTCPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const [error, setError] = useState<string>("");
@@ -180,12 +206,13 @@ function WebRTCPlayer({ onOfferCreated, answerSdp }: WebRTCPlayerProps) {
   }, [answerSdp]);
 
   return (
-    <div className="relative w-full aspect-video bg-black">
+    <div className="relative w-full aspect-video bg-black overflow-hidden rounded-md">
       <video
         ref={videoRef}
         autoPlay
         playsInline
-        className="w-full h-full object-contain"
+        className="w-full h-full overflow-hidden rounded-md"
+        controls={!hideControls}
       />
       {error && (
         <div className="absolute top-0 left-0 right-0 bg-red-500 text-white p-2 text-center">
