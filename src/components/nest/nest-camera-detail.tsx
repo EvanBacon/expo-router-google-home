@@ -77,23 +77,6 @@ const CameraDetailScreen = ({
       <View
         style={[styles.videoSection, isFullscreen && styles.fullscreenVideo]}
       >
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.headerButton}>
-            <Ionicons name="close" size={24} color="white" />
-          </TouchableOpacity>
-          <View style={styles.liveIndicator}>
-            <View style={styles.liveDot} />
-            <Text style={styles.liveText}>Live</Text>
-          </View>
-          <TouchableOpacity style={styles.headerButton}>
-            <MaterialCommunityIcons
-              name="dots-vertical"
-              size={24}
-              color="white"
-            />
-          </TouchableOpacity>
-        </View>
-
         <WebRTCPlayer
           deviceId={device.name.split("/").pop()}
           accessToken={auth.accessToken}
@@ -190,7 +173,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#1a1a1a",
   },
   videoSection: {
-    height: SCREEN_HEIGHT * 0.4,
+    height: SCREEN_HEIGHT * 0.25,
     backgroundColor: "#000",
   },
   fullscreenVideo: {

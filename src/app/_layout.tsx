@@ -73,6 +73,8 @@ function InnerAuth() {
         <Stack.Screen
           name="device/[device]"
           options={{
+            title: "",
+            headerLargeTitle: false,
             presentation: "modal",
           }}
         />
