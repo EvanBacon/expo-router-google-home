@@ -10,6 +10,7 @@ import {
   View,
   ActivityIndicator,
   RefreshControl,
+  SafeAreaView,
 } from "react-native";
 
 import NestButton from "@/components/nest/nest-auth-button";
@@ -21,7 +22,11 @@ export default function NestCard() {
   const nestAuth = useNestAuth();
 
   if (!nestAuth.accessToken) {
-    return <NestButton />;
+    return (
+      <SafeAreaView>
+        <NestButton />
+      </SafeAreaView>
+    );
   }
 
   return (
