@@ -351,7 +351,30 @@ async function fetchEventImage(url: string, token: string): Promise<string> {
 
 export type ThermostatMode = "HEAT" | "COOL" | "HEAT_COOL" | "OFF";
 
+const TRAITS = {
+  camera: {
+    // https://developers.google.com/nest/device-access/traits/device/camera-clip-preview
+    CameraClipPreview: "sdm.devices.traits.CameraClipPreview",
+    // https://developers.google.com/nest/device-access/traits/device/camera-event-image
+    CameraEventImage: "sdm.devices.traits.CameraEventImage",
+    // https://developers.google.com/nest/device-access/traits/device/camera-image
+    CameraImage: "sdm.devices.traits.CameraImage",
+    // https://developers.google.com/nest/device-access/traits/device/camera-live-stream
+    CameraLiveStream: "sdm.devices.traits.CameraLiveStream",
+    // https://developers.google.com/nest/device-access/traits/device/camera-motion
+    CameraMotion: "sdm.devices.traits.CameraMotion",
+    // https://developers.google.com/nest/device-access/traits/device/camera-person
+    CameraPerson: "sdm.devices.traits.CameraPerson",
+    // https://developers.google.com/nest/device-access/traits/device/camera-sound
+    CameraSound: "sdm.devices.traits.CameraSound",
+  },
+} as const;
+
 export const renderDevicesAsync = async (auth: { access_token: string }) => {
+  // CameraClipPreview
+
+  // enterprises/0fe1e2fa-6f3d-4def-8dcd-0d865762ca22/devices/AVPHwEscGZNRSC_Nt_HcDDd3y6ztycH86MRuf_JYD-cxD3L0-4-yUgb2UTtQFAUKB98Mp4Fcm_ScuJnNsJIUawnwVjXAxQ
+
   // const data = require("./nest-devices-fixture.json") as NestDevices;
   const data = (await fetch(
     `https://smartdevicemanagement.googleapis.com/v1/enterprises/${process.env.EXPO_PUBLIC_NEST_PROJECT_ID}/devices`,
