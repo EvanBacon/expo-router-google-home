@@ -7,6 +7,12 @@ import { makeRedirectUri } from "expo-auth-session";
 import { NestActionsProvider } from "@/components/api";
 
 import "@/global.css";
+
+// idk (sdk 56)
+globalThis.__webpack_get_script_filename__ = function (chunkId) {
+  return `static/js/${chunkId}.js`;
+}
+
 import { Platform } from "react-native";
 
 const redirectUri = makeRedirectUri({
@@ -54,9 +60,7 @@ function InnerAuth() {
   return (
     <NestActionsProvider useAuth={useNestAuth}>
       <Stack
-        screenOptions={Platform.select({
-          default: {},
-          ios: {
+        screenOptions={process.env.EXPO_OS !== 'ios' ? {} :{
             headerLargeTitle: true,
             headerTransparent: true,
             headerBlurEffect: "systemChromeMaterial",
@@ -66,8 +70,8 @@ function InnerAuth() {
               // NEW: Make the large title transparent to match the background.
               backgroundColor: "transparent",
             },
-          },
-        })}
+          
+        }}
       >
         <Stack.Screen name="index" />
         <Stack.Screen

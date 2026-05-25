@@ -1,7 +1,7 @@
 import React from "react";
 import { useNestActions } from "./api";
 import { View } from "react-native";
-import { SkeletonBox } from "@/lib/skeleton";
+// import { SkeletonBox } from "@/lib/skeleton";
 
 export function UserPlaylists() {
   const actions = useNestActions();

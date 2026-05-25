@@ -6,11 +6,6 @@
     "orientation": "portrait",
     "scheme": "exai",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "splash": {
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "ios": {
       "scheme": [
         "com.googleusercontent.apps.549323343471-esl81iea3g398omh5e5nmadnda5700p7"
@@ -26,10 +21,24 @@
         "backgroundColor": "#ffffff"
       }
     },
-    "plugins": ["expo-router"],
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      "expo-sqlite",
+      "expo-status-bar",
+      "expo-web-browser"
+    ],
     "experiments": {
       "typedRoutes": true,
-      "reactServerFunctions": true
+      "reactServerFunctions": true,
+      "reactCompiler": true
     }
   }
 }

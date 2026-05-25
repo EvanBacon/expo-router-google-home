@@ -1,7 +1,5 @@
 "use server";
 
-import React from "react";
-
 import { Image, Text, View } from "react-native";
 import NestDeviceList from "./nest-device-cards";
 import CameraDetailScreen from "./nest-camera-detail";
